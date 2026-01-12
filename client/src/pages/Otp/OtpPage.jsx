@@ -2,7 +2,7 @@ import { useRef } from "react";
 import AuthLayout from "../../layouts/AuthLayout";
 import Illustration from "../../components/Illustration";
 
-export default function OtpPage({ onBackToLogin }) {
+export default function OtpPage({ onGoToReset, onBackToLogin }) {
   const inputsRef = useRef([]);
   const boxes = Array.from({ length: 6 });
 
@@ -11,17 +11,22 @@ export default function OtpPage({ onBackToLogin }) {
     e.target.value = value;
 
     if (value && index < boxes.length - 1) {
-      const next = inputsRef.current[index + 1];
-      next?.focus();
-      next?.select();
+      inputsRef.current[index + 1]?.focus();
     }
   };
 
   const handleKeyDown = (e, index) => {
     if (e.key === "Backspace" && !e.target.value && index > 0) {
-      const prev = inputsRef.current[index - 1];
-      prev?.focus();
-      prev?.select();
+      inputsRef.current[index - 1]?.focus();
+    }
+  };
+
+  const handleConfirm = () => {
+    const otp = inputsRef.current.map((input) => input?.value || "");
+    const isComplete = otp.every((value) => value.length === 1);
+
+    if (isComplete) {
+      onGoToReset();
     }
   };
 
@@ -50,7 +55,11 @@ export default function OtpPage({ onBackToLogin }) {
           ))}
         </div>
 
-        <button type="button" className="signup-button otp-button">
+        <button
+          type="button"
+          className="signup-button otp-button"
+          onClick={handleConfirm}
+        >
           Confirm OTP
         </button>
 
@@ -70,8 +79,7 @@ export default function OtpPage({ onBackToLogin }) {
         </button>
       </div>
 
-      <Illustration useBuildings={true} />
+      <Illustration useBuildings />
     </AuthLayout>
   );
 }
-
