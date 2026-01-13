@@ -3,8 +3,42 @@ import AuthLayout from "../../layouts/AuthLayout";
 import Illustration from "../../components/Illustration";
 
 export default function SignupPage({ onGoToLogin }) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+
+    if (password !== confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    const res = await fetch("http://localhost:5000/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        email,
+        phone,
+        password,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message);
+    } else {
+      alert("Signup successful");
+      onGoToLogin();
+    }
+  };
 
   return (
     <AuthLayout>
@@ -12,23 +46,28 @@ export default function SignupPage({ onGoToLogin }) {
         <h1>Join us to improve your City</h1>
         <p>Create your account and resolve local issues.</p>
 
-        <form>
+        <form onSubmit={handleSignup}>
           <input
             type="text"
             placeholder="Full Name"
-            className="signup-input"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             required
           />
+
           <input
             type="email"
             placeholder="Email Address"
-            className="signup-input"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
+
           <input
             type="tel"
             placeholder="Phone Number"
-            className="signup-input"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
             required
           />
 
@@ -36,7 +75,8 @@ export default function SignupPage({ onGoToLogin }) {
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Password"
-              className="signup-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
             />
             <button
@@ -44,31 +84,7 @@ export default function SignupPage({ onGoToLogin }) {
               className="password-toggle"
               onClick={() => setShowPassword(!showPassword)}
             >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                {showPassword ? (
-                  <path
-                    d="M2.5 2.5L17.5 17.5M8.33333 8.33333C7.89131 8.77535 7.61859 9.35855 7.61859 9.99999C7.61859 11.3807 8.73887 12.5 10.1196 12.5"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                ) : (
-                  <>
-                    <path
-                      d="M10 4.16666C13.9394 4.16666 17.0455 7.12121 17.7727 10C17.0455 12.8788 13.9394 15.8333 10 15.8333"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    />
-                    <circle
-                      cx="10"
-                      cy="10"
-                      r="2.5"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    />
-                  </>
-                )}
-              </svg>
+              👁
             </button>
           </div>
 
@@ -76,7 +92,8 @@ export default function SignupPage({ onGoToLogin }) {
             <input
               type={showConfirmPassword ? "text" : "password"}
               placeholder="Confirm Password"
-              className="signup-input"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
             <button
@@ -84,31 +101,7 @@ export default function SignupPage({ onGoToLogin }) {
               className="password-toggle"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                {showConfirmPassword ? (
-                  <path
-                    d="M2.5 2.5L17.5 17.5M8.33333 8.33333C7.89131 8.77535 7.61859 9.35855 7.61859 9.99999"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                ) : (
-                  <>
-                    <path
-                      d="M10 4.16666C13.9394 4.16666 17.0455 7.12121 17.7727 10"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    />
-                    <circle
-                      cx="10"
-                      cy="10"
-                      r="2.5"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    />
-                  </>
-                )}
-              </svg>
+              👁
             </button>
           </div>
 
