@@ -11,8 +11,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^5.2.1",
-    "fs-extra": "^11.3.3"
+    "fs-extra": "^11.3.3",
+    "mongoose": "^9.1.4",
+    "server": "^1.0.42"
   }
 }

@@ -11,32 +11,46 @@ export default function SignupPage({ onGoToLogin }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // ✅ NEW: loading state
+  const [loading, setLoading] = useState(false);
+
   const handleSignup = async (e) => {
     e.preventDefault();
+
+    // ✅ Prevent double clicks
+    if (loading) return;
 
     if (password !== confirmPassword) {
       alert("Passwords do not match");
       return;
     }
 
-    const res = await fetch("http://localhost:5000/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        email,
-        phone,
-        password,
-      }),
-    });
+    setLoading(true); // ✅ start loading
 
-    const data = await res.json();
+    try {
+      const res = await fetch("http://localhost:5000/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          password,
+        }),
+      });
 
-    if (!res.ok) {
-      alert(data.message);
-    } else {
-      alert("Signup successful");
-      onGoToLogin();
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message);
+      } else {
+        alert("Signup successful");
+        onGoToLogin();
+      }
+    } catch (err) {
+      alert("Server error. Please try again.");
+    } finally {
+      setLoading(false); // ✅ stop loading when response arrives
     }
   };
 
@@ -53,6 +67,7 @@ export default function SignupPage({ onGoToLogin }) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
+            disabled={loading}
           />
 
           <input
@@ -61,6 +76,7 @@ export default function SignupPage({ onGoToLogin }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            disabled={loading}
           />
 
           <input
@@ -69,6 +85,7 @@ export default function SignupPage({ onGoToLogin }) {
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             required
+            disabled={loading}
           />
 
           <div className="password-input-wrapper">
@@ -78,11 +95,13 @@ export default function SignupPage({ onGoToLogin }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={loading}
             />
             <button
               type="button"
               className="password-toggle"
               onClick={() => setShowPassword(!showPassword)}
+              disabled={loading}
             >
               👁
             </button>
@@ -95,11 +114,13 @@ export default function SignupPage({ onGoToLogin }) {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
+              disabled={loading}
             />
             <button
               type="button"
               className="password-toggle"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              disabled={loading}
             >
               👁
             </button>
@@ -107,17 +128,18 @@ export default function SignupPage({ onGoToLogin }) {
 
           <div className="signup-terms">
             <label>
-              <input type="checkbox" required />
+              <input type="checkbox" required disabled={loading} />
               <span>I agree to the Terms & Condition.</span>
             </label>
           </div>
 
-          <button type="submit" className="signup-button">
-            Sign Up
+          <button type="submit" className="signup-button" disabled={loading}>
+            {loading ? "Signing up..." : "Sign Up"}
           </button>
 
           <p className="auth-footer">
-            Already have an account? <span onClick={onGoToLogin}>Login</span>
+            Already have an account?{" "}
+            <span onClick={!loading ? onGoToLogin : undefined}>Login</span>
           </p>
         </form>
       </div>

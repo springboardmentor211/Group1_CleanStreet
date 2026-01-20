@@ -1,6 +1,10 @@
 import { useState } from "react";
 
-export default function LoginForm({ onGoToSignup, onForgotPassword }) {
+export default function LoginForm({
+  onGoToSignup,
+  onForgotPassword,
+  onLoginSuccess,
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -8,18 +12,23 @@ export default function LoginForm({ onGoToSignup, onForgotPassword }) {
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    const res = await fetch("http://localhost:5000/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch("http://localhost:5000/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      alert("Invalid email or password");
-    } else {
-      alert("Successfully logged in");
+      if (!res.ok) {
+        alert(data?.message || "Please recheck email and password");
+        return;
+      }
+
+      if (onLoginSuccess) onLoginSuccess();
+    } catch {
+      alert("Server error. Please try again.");
     }
   };
 
@@ -45,32 +54,40 @@ export default function LoginForm({ onGoToSignup, onForgotPassword }) {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+
           <button
             type="button"
             className="password-toggle"
-            onClick={() => setShowPassword(!showPassword)}
+            onClick={() => setShowPassword((v) => !v)}
           >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               {showPassword ? (
-                <path
-                  d="M2.5 2.5L17.5 17.5M8.33333 8.33333C7.89131 8.77535 7.61859 9.35855 7.61859 9.99999C7.61859 11.3807 8.73887 12.5 10.1196 12.5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
+                <>
+                  <path
+                    d="M1 1L23 23"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M12 5C7 5 3.73 8.11 2 12"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                  />
+                </>
               ) : (
                 <>
                   <path
-                    d="M10 4.16666C13.9394 4.16666 17.0455 7.12121 17.7727 10C17.0455 12.8788 13.9394 15.8333 10 15.8333"
+                    d="M12 5c5 0 8.27 3.11 10 7-1.73 3.89-5 7-10 7S3.73 15.89 2 12c1.73-3.89 5-7 10-7z"
                     stroke="currentColor"
-                    strokeWidth="1.5"
+                    strokeWidth="1.8"
                   />
                   <circle
-                    cx="10"
-                    cy="10"
-                    r="2.5"
+                    cx="12"
+                    cy="12"
+                    r="3"
                     stroke="currentColor"
-                    strokeWidth="1.5"
+                    strokeWidth="1.8"
                   />
                 </>
               )}
@@ -78,14 +95,12 @@ export default function LoginForm({ onGoToSignup, onForgotPassword }) {
           </button>
         </div>
 
+        {/* ✅ SAME LINE — checkbox on RIGHT */}
         <div className="form-options">
           <label className="remember-me">
-            <input type="checkbox" />
             <span>Remember Me</span>
+            <input type="checkbox" />
           </label>
-          <span className="forgot-password" onClick={onForgotPassword}>
-            Forgot Password?
-          </span>
         </div>
 
         <button type="submit">Login</button>
@@ -93,6 +108,10 @@ export default function LoginForm({ onGoToSignup, onForgotPassword }) {
 
       <p className="auth-footer">
         New here? <span onClick={onGoToSignup}>Sign up</span>
+      </p>
+
+      <p className="auth-footer">
+        <span onClick={onForgotPassword}>Forgot Password?</span>
       </p>
     </div>
   );
