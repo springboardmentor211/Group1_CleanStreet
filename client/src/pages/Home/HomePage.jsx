@@ -1,4 +1,4 @@
-export default function HomePage() {
+export default function HomePage({ onNavigate }) {
   return (
     <div className="home-page">
       <div className="home-sky-background">
@@ -22,10 +22,18 @@ export default function HomePage() {
             </nav>
 
             <div className="home-header-actions">
-              <button type="button" className="home-header-ghost">
+              <button
+                type="button"
+                className="home-header-ghost"
+                onClick={() => onNavigate && onNavigate("dashboard")}
+              >
                 Dashboard
               </button>
-              <button type="button" className="home-header-primary">
+              <button
+                type="button"
+                className="home-header-primary"
+                onClick={() => onNavigate && onNavigate("new-report")}
+              >
                 New Report
               </button>
             </div>
@@ -52,10 +60,18 @@ export default function HomePage() {
                 </p>
 
                 <div className="home-hero-actions">
-                  <button type="button" className="home-cta-primary">
+                  <button
+                    type="button"
+                    className="home-cta-primary"
+                    onClick={() => onNavigate && onNavigate("new-report")}
+                  >
                     Get Started
                   </button>
-                  <button type="button" className="home-cta-secondary">
+                  <button
+                    type="button"
+                    className="home-cta-secondary"
+                    onClick={() => onNavigate && onNavigate("dashboard")}
+                  >
                     View My Reports
                   </button>
                 </div>

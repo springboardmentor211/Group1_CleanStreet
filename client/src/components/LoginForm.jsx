@@ -26,6 +26,11 @@ export default function LoginForm({
         return;
       }
 
+      // Store user data in localStorage
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
+
       if (onLoginSuccess) onLoginSuccess();
     } catch {
       alert("Server error. Please try again.");
