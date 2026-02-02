@@ -9,6 +9,8 @@ import DashboardPage from "./pages/Dashboard/DashboardPage";
 import ProfilePage from "./pages/Profile/ProfilePage";
 import NewReportPage from "./pages/NewReport/NewReportPage";
 import CommunityMapPage from "./pages/CommunityMap/CommunityMapPage";
+import CommunityReports from "./pages/CommunityReports/CommunityReports.jsx";
+
 
 function App() {
   const [mode, setMode] = useState("signup");
@@ -47,6 +49,10 @@ function App() {
 
   if (mode === "landing") {
     return <HomePage onNavigate={handleNavigate} />;
+  }
+
+  if (mode === "community-reports") {
+    return <CommunityReports onNavigate={handleNavigate} />;
   }
 
   if (mode === "login") {
