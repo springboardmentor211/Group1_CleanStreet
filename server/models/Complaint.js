@@ -7,13 +7,31 @@ const complaintSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    title: { type: String, required: true },
-    description: { type: String, required: true },
-    photo: { type: String, required: true }, // URL or base64
+    title: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+    photo: {
+      type: String,
+      required: true,
+    },
     location: {
-      latitude: { type: Number, required: true },
-      longitude: { type: Number, required: true },
-      address: String,
+      latitude: {
+        type: Number,
+        required: true,
+      },
+      longitude: {
+        type: Number,
+        required: true,
+      },
+      address: {
+        type: String,
+        default: "",
+      },
     },
     category: {
       type: String,
@@ -34,14 +52,24 @@ const complaintSchema = new mongoose.Schema(
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      default: null,
+    },
+    upvotes: {
+      type: Number,
+      default: 0,
+    },
+    downvotes: {
+      type: Number,
+      default: 0,
     },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+  },
 );
 
-// Add indexes for optimized queries
 complaintSchema.index({ userId: 1 });
 complaintSchema.index({ status: 1 });
-complaintSchema.index({ createdAt: -1 }); // For sorting by newest first
+complaintSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("Complaint", complaintSchema);

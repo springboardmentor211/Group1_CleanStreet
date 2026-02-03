@@ -1,30 +1,26 @@
-import { useState } from "react";
-
-const VoteButtons = () => {
-  const [upvotes, setUpvotes] = useState(0);
-  const [downvotes, setDownvotes] = useState(0);
-  const [voted, setVoted] = useState(null); // "up" | "down" | null
-
+const VoteButtons = ({
+  upvotes = 0,
+  downvotes = 0,
+  voted = null, // "up" | "down" | null
+  onUpvote,
+  onDownvote,
+  disabled = false,
+}) => {
   const handleUpvote = () => {
-    if (voted === "up") return;
-    if (voted === "down") setDownvotes((prev) => prev - 1);
-
-    setUpvotes((prev) => prev + 1);
-    setVoted("up");
+    if (disabled) return;
+    if (typeof onUpvote === "function") onUpvote();
   };
 
   const handleDownvote = () => {
-    if (voted === "down") return;
-    if (voted === "up") setUpvotes((prev) => prev - 1);
-
-    setDownvotes((prev) => prev + 1);
-    setVoted("down");
+    if (disabled) return;
+    if (typeof onDownvote === "function") onDownvote();
   };
 
   return (
     <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
       <button
         onClick={handleUpvote}
+        disabled={disabled}
         style={{
           border: "none",
           background: "transparent",
@@ -38,6 +34,7 @@ const VoteButtons = () => {
 
       <button
         onClick={handleDownvote}
+        disabled={disabled}
         style={{
           border: "none",
           background: "transparent",

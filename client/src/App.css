@@ -1121,7 +1121,9 @@ body {
   outline: none;
   font-size: 0.95rem;
   background-color: #ffffff;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .profile-form-input:focus {
@@ -1243,7 +1245,9 @@ body {
   outline: none;
   font-size: 0.95rem;
   background-color: #ffffff;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   font-family: inherit;
 }
 
@@ -1946,7 +1950,11 @@ body {
 
 /* Profile Header Section */
 .profile-header-section {
-  background: linear-gradient(135deg, rgba(142, 220, 110, 0.2), rgba(168, 232, 144, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(142, 220, 110, 0.2),
+    rgba(168, 232, 144, 0.1)
+  );
   border-radius: 24px;
   padding: 3rem 2rem;
   margin-bottom: 2rem;
@@ -2130,7 +2138,9 @@ body {
   outline: none;
   font-size: 1.1rem;
   background-color: white;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   font-family: inherit;
 }
 
@@ -2310,11 +2320,9 @@ body {
    Community Reports Page (Track Community Issues)
 ========================== */
 
-
 .community-reports-container {
-  padding: 2rem;
-  background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
-  min-height: 100vh;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .community-reports-title {
@@ -2361,7 +2369,9 @@ body {
   border-radius: 16px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
   padding: 1.5rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .community-report-card:hover {

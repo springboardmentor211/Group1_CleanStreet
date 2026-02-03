@@ -1,31 +1,37 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-const CommentSection = () => {
+const CommentSection = ({
+  commentCount = 0,
+  comments = null, // null => not loaded yet
+  loading = false,
+  onToggle,
+  onSubmit,
+  defaultAuthor = "Anonymous",
+}) => {
   const [showComments, setShowComments] = useState(false);
-  const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
 
-  const handleAddComment = () => {
-    if (!newComment.trim()) return;
+  const resolvedComments = useMemo(() => (Array.isArray(comments) ? comments : []), [comments]);
 
-    setComments([
-      ...comments,
-      {
-        id: Date.now(),
-        text: newComment,
-        user: "Demo User",
-        time: "Just now",
-      },
-    ]);
+  useEffect(() => {
+    if (showComments && typeof onToggle === "function") onToggle(true);
+    if (!showComments && typeof onToggle === "function") onToggle(false);
+  }, [showComments, onToggle]);
 
-    setNewComment("");
+  const handleAddComment = async () => {
+    const content = newComment.trim();
+    if (!content) return;
+    if (typeof onSubmit === "function") {
+      const ok = await onSubmit({ author: defaultAuthor, content });
+      if (ok !== false) setNewComment("");
+    }
   };
 
   return (
     <div>
       {/* Toggle Button */}
       <button
-        onClick={() => setShowComments(!showComments)}
+        onClick={() => setShowComments((v) => !v)}
         style={{
           border: "none",
           background: "transparent",
@@ -34,16 +40,22 @@ const CommentSection = () => {
           fontSize: "0.9rem",
         }}
       >
-        💬 Comments ({comments.length})
+        💬 Comments ({commentCount})
       </button>
 
       {/* Comment Box */}
       {showComments && (
         <div style={{ marginTop: "0.8rem" }}>
           {/* Existing comments */}
-          {comments.map((comment) => (
+          {loading ? (
+            <div style={{ fontSize: "0.85rem", color: "#6B7280", marginBottom: "0.5rem" }}>
+              Loading comments...
+            </div>
+          ) : null}
+
+          {resolvedComments.map((comment) => (
             <div
-              key={comment.id}
+              key={comment._id || comment.id}
               style={{
                 background: "#F9FAFB",
                 padding: "0.6rem",
@@ -52,10 +64,10 @@ const CommentSection = () => {
                 fontSize: "0.85rem",
               }}
             >
-              <strong>{comment.user}</strong>
-              <p style={{ margin: "4px 0" }}>{comment.text}</p>
+              <strong>{comment.author || comment.user || "User"}</strong>
+              <p style={{ margin: "4px 0" }}>{comment.content || comment.text}</p>
               <span style={{ fontSize: "0.7rem", color: "#6B7280" }}>
-                {comment.time}
+                {comment.createdAt ? new Date(comment.createdAt).toLocaleString() : comment.time}
               </span>
             </div>
           ))}

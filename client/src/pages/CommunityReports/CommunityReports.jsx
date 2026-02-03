@@ -1,111 +1,103 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import VoteButtons from "../../components/VoteButtons";
 import CommentSection from "../../components/CommentSection";
 import StatusBadge from "../../components/StatusBadge";
+import { API_BASE, getUserIdForApi } from "../../utils/apiBase";
 
 export default function CommunityReports() {
-  const [complaints] = useState([
-    {
-      id: 1,
-      title: "Large pothole on Main Street causing traffic delays",
-      description:
-        "There's a massive pothole on Main Street near the intersection with Oak Avenue.",
-      location: "Main Street & Oak Avenue",
-      status: "Received",
-      time: "1 day ago",
-    },
-    {
-      id: 2,
-      title: "Broken streetlight in residential area",
-      description:
-        "The streetlight at the corner of Pine Street and 2nd Avenue has been out for over a month.",
-      location: "Pine Street & 2nd Avenue",
-      status: "Received",
-      time: "1 day ago",
-    },
-    {
-      id: 3,
-      title: "Illegal garbage dump behind shopping center",
-      description:
-        "Someone has been dumping trash behind the Westfield Shopping Center.",
-      location: "Westfield Shopping Center, Back Parking Lot",
-      status: "Received",
-      time: "1 day ago",
-    },
-    {
-      id: 4,
-      title: "Water leak flooding sidewalk on Elm Street",
-      description:
-        "Water leak flooding the sidewalk for the past 3 days.",
-      location: "Elm Street between 5th and 6th Ave",
-      status: "Received",
-      time: "1 day ago",
-    },
-  ]);
+  const [complaints, setComplaints] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [commentState, setCommentState] = useState({});
+  const [voteState, setVoteState] = useState({});
+
+  const userId = useMemo(() => getUserIdForApi(), []);
+
+  const fetchIssues = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE}/api/community/issues`, {
+        headers: userId ? { "x-user-id": userId } : {},
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setComplaints(Array.isArray(data) ? data : []);
+    } catch {
+      setError("Failed to load community issues");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchIssues();
+  }, []);
+
+  const handleVote = async (id, type) => {
+    const res = await fetch(`${API_BASE}/api/community/issues/${id}/${type}`, {
+      method: "POST",
+      headers: userId ? { "x-user-id": userId } : {},
+    });
+    const data = await res.json();
+    if (data?.issue?._id) {
+      setComplaints((prev) =>
+        prev.map((c) =>
+          c._id === data.issue._id ? { ...c, ...data.issue } : c,
+        ),
+      );
+      setVoteState((prev) => ({ ...prev, [id]: data.userVote }));
+    }
+  };
+
+  const loadComments = async (id) => {
+    const res = await fetch(`${API_BASE}/api/community/issues/${id}/comments`);
+    const data = await res.json();
+    setCommentState((p) => ({
+      ...p,
+      [id]: { comments: data, loading: false },
+    }));
+  };
+
+  const submitComment = async (id, payload) => {
+    await fetch(`${API_BASE}/api/community/issues/${id}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    await loadComments(id);
+    fetchIssues();
+    return true;
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
-    
     <main className="community-reports-container">
-    
-      {/* Page Header */}
-      <div>
-        <h1 className="community-reports-title">Community Reports</h1>
-        <p className="community-reports-subtitle">
-          View and interact with issues reported by the community
-        </p>
-      </div>
-
-      {/* Filters (UI only) */}
-      <div className="community-reports-filters">
-        <select>
-          <option>All Status</option>
-          <option>Received</option>
-          <option>In Review</option>
-          <option>Resolved</option>
-        </select>
-
-        <select>
-          <option>All Types</option>
-          <option>Garbage</option>
-          <option>Pothole</option>
-          <option>Water Leakage</option>
-          <option>Streetlight</option>
-        </select>
-      </div>
-
-      {/* Complaints Grid */}
-      <div className="community-reports-grid">
-        {complaints.map((complaint) => (
-          <div key={complaint.id} className="community-report-card">
-            {/* Card Header */}
-            <div className="community-report-header">
-              <h3 className="community-report-title">
-                {complaint.title}
-              </h3>
-              <StatusBadge status={complaint.status} />
-            </div>
-
-            {/* Description */}
-            <p className="community-report-description">
-              {complaint.description}
-            </p>
-
-            {/* Meta */}
-            <div className="community-report-meta">
-              📍 {complaint.location} &nbsp;•&nbsp; ⏱ {complaint.time}
-            </div>
-
-            {/* Actions */}
-            <div className="community-report-actions">
-              <div className="vote-buttons">
-                <VoteButtons />
-              </div>
-              <CommentSection />
-            </div>
+      {complaints.map((c) => (
+        <div key={c._id} className="community-report-card">
+          <h3>{c.title}</h3>
+          <StatusBadge status={c.status} />
+          <p>{c.description}</p>
+          <div>
+            <VoteButtons
+              upvotes={c.upvotes || 0}
+              downvotes={c.downvotes || 0}
+              voted={voteState[c._id] || null}
+              onUpvote={() => handleVote(c._id, "upvote")}
+              onDownvote={() => handleVote(c._id, "downvote")}
+            />
+            <CommentSection
+              commentCount={c.commentCount || 0}
+              comments={commentState[c._id]?.comments ?? null}
+              loading={commentState[c._id]?.loading || false}
+              onToggle={(open) => open && loadComments(c._id)}
+              onSubmit={(p) => submitComment(c._id, p)}
+              defaultAuthor="Community User"
+            />
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </main>
   );
-  
 }
