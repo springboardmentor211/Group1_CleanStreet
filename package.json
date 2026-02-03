@@ -1,0 +1,26 @@
+{
+  "name": "group1_cleanstreet",
+  "version": "1.0.0",
+  "description": "Clean Street is a smart civic engagement platform that allows users to report and track local public issues such as garbage dumps, potholes, water leakage, and broken streetlights. The system facilitates easy submission of complaints using photos and location data, enables updates by municipal authorities or volunteers.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "cd server && node index.js",
+    "client": "cd client && npm run dev",
+    "dev": "concurrently -n SERVER,CLIENT -c green,cyan \"npm run server\" \"npm run client\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/springboardmentor211/Group1_CleanStreet.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/springboardmentor211/Group1_CleanStreet/issues"
+  },
+  "homepage": "https://github.com/springboardmentor211/Group1_CleanStreet#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
