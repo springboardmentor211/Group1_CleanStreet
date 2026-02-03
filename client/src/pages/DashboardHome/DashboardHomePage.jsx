@@ -75,6 +75,7 @@ export default function DashboardHomePage({ onNavigate }) {
               >
                 My Complaints
               </button>
+              
               <button
                 type="button"
                 className="dashboard-home-nav-link"
@@ -129,7 +130,7 @@ export default function DashboardHomePage({ onNavigate }) {
                     <button
                       type="button"
                       className="dashboard-home-cta-tertiary"
-                      onClick={() => onNavigate && onNavigate("community-map")}
+                      onClick={() => onNavigate && onNavigate("community-reports")}
                     >
                       Track Community Issues
                     </button>
