@@ -152,7 +152,7 @@ export default function CommunityMapPage({ onNavigate }) {
             </div>
           </header>
 
-          <main
+          {/* <main
             className="page-main"
             style={{
               display: "flex",
@@ -182,7 +182,7 @@ export default function CommunityMapPage({ onNavigate }) {
                 }}
               />
             )}
-          </main>
+          </main> */}
         </div>
       </div>
     </div>

@@ -73,31 +73,88 @@ export default function CommunityReports() {
   if (error) return <div>{error}</div>;
 
   return (
-    <main className="community-reports-container">
-      {complaints.map((c) => (
-        <div key={c._id} className="community-report-card">
-          <h3>{c.title}</h3>
-          <StatusBadge status={c.status} />
-          <p>{c.description}</p>
-          <div>
-            <VoteButtons
-              upvotes={c.upvotes || 0}
-              downvotes={c.downvotes || 0}
-              voted={voteState[c._id] || null}
-              onUpvote={() => handleVote(c._id, "upvote")}
-              onDownvote={() => handleVote(c._id, "downvote")}
-            />
-            <CommentSection
-              commentCount={c.commentCount || 0}
-              comments={commentState[c._id]?.comments ?? null}
-              loading={commentState[c._id]?.loading || false}
-              onToggle={(open) => open && loadComments(c._id)}
-              onSubmit={(p) => submitComment(c._id, p)}
-              defaultAuthor="Community User"
-            />
-          </div>
+    <div className="page-container">
+      <div className="page-background">
+        <div className="page-content">
+          <header className="page-header">
+            <div className="page-logo">
+              <div className="page-logo-icon">🛣️</div>
+              <span className="page-logo-text">Clean Street</span>
+            </div>
+
+            <nav className="dashboard-home-nav">
+              <button
+                type="button"
+                className="dashboard-home-nav-link active"
+                onClick={() => onNavigate && onNavigate("home")}
+              >
+                Home
+              </button>
+              <button
+                type="button"
+                className="dashboard-home-nav-link"
+                onClick={() => onNavigate && onNavigate("my-complaints")}
+              >
+                My Complaints
+              </button>
+              
+              <button
+                type="button"
+                className="dashboard-home-nav-link"
+                onClick={() => onNavigate && onNavigate("profile")}
+              >
+                Profile
+              </button>
+            </nav>
+
+            <div className="dashboard-home-header-actions">
+              <button
+                type="button"
+                className="dashboard-home-logout"
+                onClick={() => {
+                  localStorage.removeItem("user");
+                  if (onNavigate) onNavigate("login");
+                }}
+              >
+                Logout
+              </button>
+            </div>
+          </header>
+            <div className="page-title-section">
+              <h1 className="page-title">Track Comunity Issues</h1>
+              <p className="page-subtitle">
+                View reported issues, vote for priorities, and be part of the solution.
+              </p>
+            </div>
+          <main className="community-reports-container">
+     
+            {complaints.map((c) => (
+              <div key={c._id} className="community-report-card">
+                <h3>{c.title}</h3>
+                <StatusBadge status={c.status} />
+                <p>{c.description}</p>
+                <div className="card-actions">
+                  <VoteButtons
+                    upvotes={c.upvotes || 0}
+                    downvotes={c.downvotes || 0}
+                    voted={voteState[c._id] || null}
+                    onUpvote={() => handleVote(c._id, "upvote")}
+                    onDownvote={() => handleVote(c._id, "downvote")}
+                  />
+                  <CommentSection
+                    commentCount={c.commentCount || 0}
+                    comments={commentState[c._id]?.comments ?? null}
+                    loading={commentState[c._id]?.loading || false}
+                    onToggle={(open) => open && loadComments(c._id)}
+                    onSubmit={(p) => submitComment(c._id, p)}
+                    defaultAuthor="Community User"
+                  />
+                </div>
+              </div>
+            ))}
+          </main>
         </div>
-      ))}
-    </main>
+      </div>
+    </div>
   );
 }

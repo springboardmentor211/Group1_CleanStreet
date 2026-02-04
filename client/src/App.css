@@ -2321,9 +2321,13 @@ body {
 ========================== */
 
 .community-reports-container {
-  max-width: 1400px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 850px;
   margin: 0 auto;
 }
+
 
 .community-reports-title {
   font-size: 2rem;
@@ -2365,9 +2369,10 @@ body {
 /* ===== Complaint Card ===== */
 
 .community-report-card {
-  background: #ffffff;
+  background: #f6fbf7;
   border-radius: 16px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.08);
   padding: 1.5rem;
   transition:
     transform 0.2s ease,
@@ -2393,6 +2398,13 @@ body {
   color: #064e3b;
   margin-right: 0.5rem;
 }
+
+.card-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 
 /* ===== Description ===== */
 
