@@ -21,6 +21,7 @@ function App() {
     if (user && mode === "signup") {
       setMode("home");
     }
+    // setMode("community-reports");
   }, [mode]);
 
   const handleNavigate = (newMode) => {
