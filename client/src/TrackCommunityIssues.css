@@ -1,0 +1,223 @@
+/* =========================
+   Global Reset
+========================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* =========================
+   Auth Container
+========================= */
+.auth-container {
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /* background image */
+  background-image: url("./assets/backgrounds/auth-bg.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* =========================
+   Green Overlay (same feel as before)
+========================= */
+.auth-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(200, 245, 165, 0.9);
+  z-index: 0;
+}
+
+/* =========================
+   Track Community Container
+========================= */
+.track-community-container {
+  position: relative;
+  z-index: 1; /* stays above bg + overlay */
+  min-height: 100vh;
+  padding: 40px 20px;
+}
+
+/* =========================
+   Header Section
+========================= */
+.track-community-header {
+  max-width: 1200px;
+  margin: 0 auto 40px;
+}
+
+.track-community-title {
+  color: #2d3748;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.track-community-subtitle {
+  color: #4a5568;
+  font-size: 1.125rem;
+}
+
+/* =========================
+   Issues Grid
+========================= */
+.track-issues-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+/* =========================
+   Issue Card
+========================= */
+.track-issue-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  cursor: pointer;
+
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.track-issue-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* =========================
+   Issue Image
+========================= */
+.track-issue-image {
+  width: 100%;
+  height: 180px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #e2e8f0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.track-issue-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* =========================
+   Issue Content
+========================= */
+.track-issue-title {
+  color: #2d3748;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.track-issue-description {
+  color: #4a5568;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+/* =========================
+   Voting Section
+========================= */
+.track-voting-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.track-vote-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.track-vote-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  font-size: 1.5rem;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: transform 0.1s ease, opacity 0.2s ease;
+}
+
+.track-vote-btn:hover {
+  transform: scale(1.2);
+}
+
+.track-vote-btn:active {
+  transform: scale(0.95);
+}
+
+.track-vote-btn.voted {
+  opacity: 0.6;
+}
+
+.track-vote-count {
+  min-width: 24px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.track-emoji {
+  display: block;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+/* =========================
+   Responsive Design
+========================= */
+@media (max-width: 768px) {
+  .track-community-title {
+    font-size: 2rem;
+  }
+
+  .track-community-subtitle {
+    font-size: 1rem;
+  }
+
+  .track-issues-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .track-community-container {
+    padding: 20px 15px;
+  }
+
+  .track-community-title {
+    font-size: 1.75rem;
+  }
+
+  .track-issue-card {
+    padding: 20px;
+  }
+
+  .track-voting-section {
+    gap: 15px;
+  }
+}
