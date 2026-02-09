@@ -76,7 +76,8 @@ export default function CommunityReports({ onNavigate }) {
       <div
         className="page-background"
         style={{
-          background: "linear-gradient(180deg, #d9ead3 0%, #d9ead3 30%, #d9ead3 100%)",
+          background:
+            "linear-gradient(180deg, #d9ead3 0%, #d9ead3 30%, #d9ead3 100%)",
           minHeight: "100vh",
         }}
       >
@@ -151,7 +152,8 @@ export default function CommunityReports({ onNavigate }) {
                   color: "#5a5a5a",
                 }}
               >
-                View reported issues, vote for priorities, and be part of the solution.
+                View reported issues, vote for priorities, and be part of the
+                solution.
               </p>
             </div>
 
@@ -165,186 +167,192 @@ export default function CommunityReports({ onNavigate }) {
                 textAlign: "left",
               }}
             >
-        {issues.map((i) => (
-          <div
-            key={i._id}
-            style={{
-              background: "#fff",
-              borderRadius: 16,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-              overflow: "hidden",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <div
-              style={{
-                width: "100%",
-                height: 200,
-                background: "#e8e8e8",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                position: "relative",
-              }}
-            >
-              <svg
-                width="48"
-                height="48"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#9e9e9e"
-                strokeWidth="1.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ marginBottom: 8 }}
-              >
-                <path d="M3 20h18v-2H3v2z" />
-                <path d="M3 20l4-8 4 4 5-10 5 14" />
-                <path d="M7 16l2-4 2 2 3-6" />
-              </svg>
-              <span
-                style={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: "#555",
-                  textAlign: "center",
-                  padding: "0 12px",
-                }}
-              >
-                {i.title}
-              </span>
-            </div>
-
-            <div style={{ padding: 20, flex: 1 }}>
-              <h3
-                style={{
-                  margin: "0 0 10px",
-                  fontSize: "18px",
-                  fontWeight: 700,
-                  color: "#2d2d2d",
-                }}
-              >
-                {i.title}
-              </h3>
-
-              <p
-                style={{
-                  margin: "0 0 18px",
-                  fontSize: 15,
-                  color: "#5a5a5a",
-                  lineHeight: 1.4,
-                }}
-              >
-                {i.description}
-              </p>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: 20,
-                  alignItems: "center",
-                  paddingTop: 12,
-                  borderTop: "1px solid #eee",
-                }}
-              >
-                <button
-                  onClick={() => upvote(i._id)}
+              {issues.map((i) => (
+                <div
+                  key={i._id}
                   style={{
+                    background: "#fff",
+                    borderRadius: 16,
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                    overflow: "hidden",
                     display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    fontSize: 15,
-                    color: "#374151",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: "4px 0",
-                    fontWeight: 500,
+                    flexDirection: "column",
                   }}
                 >
-                  👍 {i.upvotes || 0}
-                </button>
-                <button
-                  onClick={() => toggleComments(i._id)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    fontSize: 15,
-                    color: "#374151",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: "4px 0",
-                    fontWeight: 500,
-                  }}
-                >
-                  💬 {i.commentCount || 0}
-                </button>
-              </div>
-
-              {openComments[i._id] && (
-                <div style={{ marginTop: 16 }}>
-                  {(comments[i._id] || []).map((c) => (
-                    <div
-                      key={c._id}
-                      style={{
-                        background: "#f4f4f4",
-                        padding: 10,
-                        borderRadius: 8,
-                        marginBottom: 8,
-                      }}
+                  <div
+                    style={{
+                      width: "100%",
+                      height: 200,
+                      background: "#e8e8e8",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      position: "relative",
+                    }}
+                  >
+                    <svg
+                      width="48"
+                      height="48"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#9e9e9e"
+                      strokeWidth="1.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{ marginBottom: 8 }}
                     >
-                      <strong style={{ fontSize: 14 }}>{c.author}</strong>
-                      <div style={{ fontSize: 14, color: "#555", marginTop: 4 }}>
-                        {c.content}
-                      </div>
-                    </div>
-                  ))}
-
-                  <div style={{ display: "flex", marginTop: 8, gap: 8 }}>
-                    <input
-                      placeholder="Write a comment..."
-                      value={commentInput[i._id] || ""}
-                      onChange={(e) =>
-                        setCommentInput((p) => ({
-                          ...p,
-                          [i._id]: e.target.value,
-                        }))
-                      }
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") submitComment(i._id);
-                      }}
+                      <path d="M3 20h18v-2H3v2z" />
+                      <path d="M3 20l4-8 4 4 5-10 5 14" />
+                      <path d="M7 16l2-4 2 2 3-6" />
+                    </svg>
+                    <span
                       style={{
-                        flex: 1,
-                        padding: 8,
-                        borderRadius: 8,
-                        border: "1px solid #ddd",
                         fontSize: 14,
-                      }}
-                    />
-                    <button
-                      onClick={() => submitComment(i._id)}
-                      style={{
-                        padding: "8px 16px",
-                        background: "#4caf50",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: 8,
-                        cursor: "pointer",
-                        fontWeight: 500,
+                        fontWeight: 600,
+                        color: "#555",
+                        textAlign: "center",
+                        padding: "0 12px",
                       }}
                     >
-                      Post
-                    </button>
+                      {i.title}
+                    </span>
+                  </div>
+
+                  <div style={{ padding: 20, flex: 1 }}>
+                    <h3
+                      style={{
+                        margin: "0 0 10px",
+                        fontSize: "18px",
+                        fontWeight: 700,
+                        color: "#2d2d2d",
+                      }}
+                    >
+                      {i.title}
+                    </h3>
+
+                    <p
+                      style={{
+                        margin: "0 0 18px",
+                        fontSize: 15,
+                        color: "#5a5a5a",
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {i.description}
+                    </p>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 20,
+                        alignItems: "center",
+                        paddingTop: 12,
+                        borderTop: "1px solid #eee",
+                      }}
+                    >
+                      <button
+                        onClick={() => upvote(i._id)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          fontSize: 15,
+                          color: "#374151",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          padding: "4px 0",
+                          fontWeight: 500,
+                        }}
+                      >
+                        👍 {i.upvotes || 0}
+                      </button>
+                      <button
+                        onClick={() => toggleComments(i._id)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          fontSize: 15,
+                          color: "#374151",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          padding: "4px 0",
+                          fontWeight: 500,
+                        }}
+                      >
+                        💬 {i.commentCount || 0}
+                      </button>
+                    </div>
+
+                    {openComments[i._id] && (
+                      <div style={{ marginTop: 16 }}>
+                        {(comments[i._id] || []).map((c) => (
+                          <div
+                            key={c._id}
+                            style={{
+                              background: "#f4f4f4",
+                              padding: 10,
+                              borderRadius: 8,
+                              marginBottom: 8,
+                            }}
+                          >
+                            <strong style={{ fontSize: 14 }}>{c.author}</strong>
+                            <div
+                              style={{
+                                fontSize: 14,
+                                color: "#555",
+                                marginTop: 4,
+                              }}
+                            >
+                              {c.content}
+                            </div>
+                          </div>
+                        ))}
+
+                        <div style={{ display: "flex", marginTop: 8, gap: 8 }}>
+                          <input
+                            placeholder="Write a comment..."
+                            value={commentInput[i._id] || ""}
+                            onChange={(e) =>
+                              setCommentInput((p) => ({
+                                ...p,
+                                [i._id]: e.target.value,
+                              }))
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") submitComment(i._id);
+                            }}
+                            style={{
+                              flex: 1,
+                              padding: 8,
+                              borderRadius: 8,
+                              border: "1px solid #ddd",
+                              fontSize: 14,
+                            }}
+                          />
+                          <button
+                            onClick={() => submitComment(i._id)}
+                            style={{
+                              padding: "8px 16px",
+                              background: "#4caf50",
+                              color: "#fff",
+                              border: "none",
+                              borderRadius: 8,
+                              cursor: "pointer",
+                              fontWeight: 500,
+                            }}
+                          >
+                            Post
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-        ))}
+              ))}
             </div>
           </main>
         </div>

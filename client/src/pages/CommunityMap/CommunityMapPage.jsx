@@ -1,10 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { API_BASE } from "../../utils/apiBase";
 
+const OSRM_DIRECTIONS_BASE =
+  "https://www.openstreetmap.org/directions?engine=osrm_car&route=";
+const DEFAULT_CENTER = [28.6139, 77.209];
+
 export default function CommunityMapPage({ onNavigate }) {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [userCoords, setUserCoords] = useState(null);
   const mapRef = useRef(null);
   const markersRef = useRef([]);
 
@@ -23,21 +28,6 @@ export default function CommunityMapPage({ onNavigate }) {
     }
   };
 
-  const initLeaflet = () =>
-    new Promise((resolve) => {
-      if (window.L) return resolve();
-
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-      document.head.appendChild(link);
-
-      const script = document.createElement("script");
-      script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-      script.onload = () => resolve();
-      document.body.appendChild(script);
-    });
-
   useEffect(() => {
     fetchIssues();
   }, []);
@@ -47,9 +37,8 @@ export default function CommunityMapPage({ onNavigate }) {
 
     let cancelled = false;
 
-    const setup = async () => {
-      await initLeaflet();
-      if (cancelled || !window.L) return;
+    const setup = () => {
+      if (!window.L) return;
 
       const container = document.getElementById("community-issues-map");
       if (!container) return;
@@ -59,7 +48,7 @@ export default function CommunityMapPage({ onNavigate }) {
         mapRef.current = null;
       }
 
-      const map = window.L.map(container).setView([28.6139, 77.209], 12);
+      const map = window.L.map(container).setView(DEFAULT_CENTER, 12);
 
       window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution:
@@ -68,14 +57,19 @@ export default function CommunityMapPage({ onNavigate }) {
 
       mapRef.current = map;
 
-      setTimeout(() => {
-        map.invalidateSize();
-      }, 0);
+      setTimeout(() => map.invalidateSize(), 0);
 
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((pos) => {
-          map.setView([pos.coords.latitude, pos.coords.longitude], 12);
-        });
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            if (cancelled || !mapRef.current) return;
+            const { latitude, longitude } = pos.coords;
+            setUserCoords([latitude, longitude]);
+            mapRef.current.setView([latitude, longitude], 12);
+          },
+          () => {},
+          { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 },
+        );
       }
     };
 
@@ -91,6 +85,8 @@ export default function CommunityMapPage({ onNavigate }) {
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
 
+    const [fromLat, fromLng] = userCoords || DEFAULT_CENTER;
+
     issues.forEach((issue) => {
       const lat = issue?.location?.latitude;
       const lng = issue?.location?.longitude;
@@ -98,18 +94,36 @@ export default function CommunityMapPage({ onNavigate }) {
 
       const marker = window.L.marker([lat, lng]).addTo(mapRef.current);
 
+      const directionsUrl = `${OSRM_DIRECTIONS_BASE}${fromLat},${fromLng};${lat},${lng}`;
+
       marker.bindPopup(`
-        <div style="min-width:220px">
-          <strong>${issue.title}</strong><br/>
-          ${issue.description}<br/>
-          👍 ${issue.upvotes ?? 0} | 👎 ${issue.downvotes ?? 0}<br/>
-          Status: ${issue.status}
+        <div style="min-width:240px">
+          <strong>${escapeHtml(issue.title)}</strong><br/>
+          <span style="color:#555;font-size:13px">${escapeHtml(issue.description || "")}</span><br/>
+          👍 ${issue.upvotes ?? 0} | 👎 ${issue.downvotes ?? 0} · ${issue.status || "pending"}<br/>
+          <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" style="margin-top:8px;display:inline-block;font-size:13px;color:#22c55e">Get directions (OSRM)</a>
         </div>
       `);
 
       markersRef.current.push(marker);
     });
-  }, [issues]);
+
+    if (issues.length > 0) {
+      const withLoc = issues.filter(
+        (i) =>
+          typeof i?.location?.latitude === "number" &&
+          typeof i?.location?.longitude === "number",
+      );
+      if (withLoc.length > 0) {
+        const points = withLoc.map((i) => [
+          i.location.latitude,
+          i.location.longitude,
+        ]);
+        const bounds = window.L.latLngBounds(points);
+        mapRef.current.fitBounds(bounds.pad(0.15));
+      }
+    }
+  }, [issues, userCoords]);
 
   return (
     <div className="page-container">
@@ -123,20 +137,37 @@ export default function CommunityMapPage({ onNavigate }) {
 
             <nav className="page-nav">
               <button
+                type="button"
                 className="page-nav-link"
-                onClick={() => onNavigate("home")}
+                onClick={() => onNavigate && onNavigate("home")}
               >
                 Home
               </button>
               <button
+                type="button"
                 className="page-nav-link"
-                onClick={() => onNavigate("my-complaints")}
+                onClick={() => onNavigate && onNavigate("my-complaints")}
               >
                 My Complaints
               </button>
               <button
+                type="button"
+                className="page-nav-link active"
+                onClick={() => onNavigate && onNavigate("community-map")}
+              >
+                Community Map
+              </button>
+              <button
+                type="button"
                 className="page-nav-link"
-                onClick={() => onNavigate("profile")}
+                onClick={() => onNavigate && onNavigate("community-reports")}
+              >
+                Community Issues
+              </button>
+              <button
+                type="button"
+                className="page-nav-link"
+                onClick={() => onNavigate && onNavigate("profile")}
               >
                 Profile
               </button>
@@ -144,20 +175,25 @@ export default function CommunityMapPage({ onNavigate }) {
 
             <div className="page-header-actions">
               <button
+                type="button"
                 className="page-header-logout"
-                onClick={() => onNavigate("community-reports")}
+                onClick={() => {
+                  localStorage.removeItem("user");
+                  if (onNavigate) onNavigate("login");
+                }}
               >
-                Track Community Issues
+                Logout
               </button>
             </div>
           </header>
 
-          {/* <main
+          <main
             className="page-main"
             style={{
               display: "flex",
               flexDirection: "column",
-              height: "100vh",
+              flex: 1,
+              minHeight: "calc(100vh - 100px)",
             }}
           >
             <div className="page-title-section">
@@ -179,12 +215,23 @@ export default function CommunityMapPage({ onNavigate }) {
                 style={{
                   flex: 1,
                   width: "100%",
+                  minHeight: 400,
+                  borderRadius: 16,
+                  overflow: "hidden",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
                 }}
               />
             )}
-          </main> */}
+          </main>
         </div>
       </div>
     </div>
   );
+}
+
+function escapeHtml(text) {
+  if (!text) return "";
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
 }

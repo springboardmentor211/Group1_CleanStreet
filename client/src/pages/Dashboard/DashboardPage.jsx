@@ -19,12 +19,14 @@ export default function DashboardPage({ onNavigate }) {
   const fetchComplaints = async (userId) => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5000/api/complaints/my?userId=${userId}`);
-      
+      const res = await fetch(
+        `http://localhost:5000/api/complaints/my?userId=${userId}`,
+      );
+
       if (!res.ok) {
         throw new Error("Failed to fetch complaints");
       }
-      
+
       const data = await res.json();
       setComplaints(data);
     } catch (err) {
@@ -153,7 +155,9 @@ export default function DashboardPage({ onNavigate }) {
                       />
                       <div
                         className="complaint-status-badge"
-                        style={{ backgroundColor: getStatusColor(complaint.status) }}
+                        style={{
+                          backgroundColor: getStatusColor(complaint.status),
+                        }}
                       >
                         {getStatusLabel(complaint.status)}
                       </div>
@@ -162,7 +166,9 @@ export default function DashboardPage({ onNavigate }) {
                       <div className="complaint-card-category">
                         {getCategoryLabel(complaint.category)}
                       </div>
-                      <h3 className="complaint-card-title">{complaint.title}</h3>
+                      <h3 className="complaint-card-title">
+                        {complaint.title}
+                      </h3>
                       <p className="complaint-card-description">
                         {complaint.description}
                       </p>

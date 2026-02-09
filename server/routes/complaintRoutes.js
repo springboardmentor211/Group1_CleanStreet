@@ -142,7 +142,7 @@ router.get("/complaints", async (req, res) => {
 router.get("/api/complaints/all", async (req, res) => {
   try {
     const complaints = await Complaint.find()
-      .select("title description photo location category status createdAt")
+      .select("title description photo location category status createdAt upvotes downvotes")
       .populate("userId", "name")
       .sort({ createdAt: -1 })
       .lean();
