@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const Complaint = require("../models/Complaint");
+const cloudinary = require("../config/cloudinary");
 
 const router = express.Router();
 
@@ -32,11 +33,20 @@ router.post("/complaints", async (req, res) => {
       return res.status(400).json({ message: "Location is required" });
     }
 
+    let photoUrl = photo;
+    if (photo && photo.startsWith("data:image")) {
+      const uploadResult = await cloudinary.uploader.upload(photo, {
+        folder: "cleanstreet/complaints",
+        resource_type: "image",
+      });
+      photoUrl = uploadResult.secure_url;
+    }
+
     const complaint = new Complaint({
       userId: new mongoose.Types.ObjectId(userId),
       title,
       description,
-      photo,
+      photo: photoUrl,
       location: {
         latitude: location.latitude,
         longitude: location.longitude,

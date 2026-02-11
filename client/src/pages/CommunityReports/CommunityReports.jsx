@@ -134,7 +134,7 @@ export default function CommunityReports({ onNavigate }) {
           </header>
 
           <main className="page-main" style={{ textAlign: "center" }}>
-            <div style={{ marginBottom: 32, textAlign: "center" }}>
+            <div style={{ marginBottom: 32 }}>
               <h1
                 style={{
                   margin: "0 0 8px",
@@ -183,40 +183,36 @@ export default function CommunityReports({ onNavigate }) {
                     style={{
                       width: "100%",
                       height: 200,
+                      overflow: "hidden",
                       background: "#e8e8e8",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      position: "relative",
                     }}
                   >
-                    <svg
-                      width="48"
-                      height="48"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#9e9e9e"
-                      strokeWidth="1.2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      style={{ marginBottom: 8 }}
-                    >
-                      <path d="M3 20h18v-2H3v2z" />
-                      <path d="M3 20l4-8 4 4 5-10 5 14" />
-                      <path d="M7 16l2-4 2 2 3-6" />
-                    </svg>
-                    <span
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 600,
-                        color: "#555",
-                        textAlign: "center",
-                        padding: "0 12px",
-                      }}
-                    >
-                      {i.title}
-                    </span>
+                    {i.photo ? (
+                      <img
+                        src={i.photo}
+                        alt={i.title}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#777",
+                          fontWeight: 600,
+                        }}
+                      >
+                        No Image
+                      </div>
+                    )}
                   </div>
 
                   <div style={{ padding: 20, flex: 1 }}>
@@ -258,16 +254,15 @@ export default function CommunityReports({ onNavigate }) {
                           alignItems: "center",
                           gap: 8,
                           fontSize: 15,
-                          color: "#374151",
                           background: "none",
                           border: "none",
                           cursor: "pointer",
-                          padding: "4px 0",
                           fontWeight: 500,
                         }}
                       >
                         👍 {i.upvotes || 0}
                       </button>
+
                       <button
                         onClick={() => toggleComments(i._id)}
                         style={{
@@ -275,11 +270,9 @@ export default function CommunityReports({ onNavigate }) {
                           alignItems: "center",
                           gap: 8,
                           fontSize: 15,
-                          color: "#374151",
                           background: "none",
                           border: "none",
                           cursor: "pointer",
-                          padding: "4px 0",
                           fontWeight: 500,
                         }}
                       >
@@ -299,16 +292,8 @@ export default function CommunityReports({ onNavigate }) {
                               marginBottom: 8,
                             }}
                           >
-                            <strong style={{ fontSize: 14 }}>{c.author}</strong>
-                            <div
-                              style={{
-                                fontSize: 14,
-                                color: "#555",
-                                marginTop: 4,
-                              }}
-                            >
-                              {c.content}
-                            </div>
+                            <strong>{c.author}</strong>
+                            <div style={{ marginTop: 4 }}>{c.content}</div>
                           </div>
                         ))}
 
@@ -330,7 +315,6 @@ export default function CommunityReports({ onNavigate }) {
                               padding: 8,
                               borderRadius: 8,
                               border: "1px solid #ddd",
-                              fontSize: 14,
                             }}
                           />
                           <button
@@ -342,7 +326,6 @@ export default function CommunityReports({ onNavigate }) {
                               border: "none",
                               borderRadius: 8,
                               cursor: "pointer",
-                              fontWeight: 500,
                             }}
                           >
                             Post

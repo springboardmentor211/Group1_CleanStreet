@@ -20,11 +20,6 @@ function getVoterId(req) {
 router.get("/api/community/issues", async (req, res) => {
   try {
     const issues = await Complaint.aggregate([
-      {
-        $project: {
-          photo: 0,
-        },
-      },
       { $sort: { createdAt: -1 } },
       {
         $lookup: {
@@ -39,7 +34,11 @@ router.get("/api/community/issues", async (req, res) => {
           commentCount: { $size: "$comments" },
         },
       },
-      { $project: { comments: 0 } },
+      {
+        $project: {
+          comments: 0,
+        },
+      },
     ]);
 
     res.status(200).json(issues);

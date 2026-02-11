@@ -4,6 +4,7 @@ import { API_BASE } from "../../utils/apiBase";
 const OSRM_DIRECTIONS_BASE =
   "https://www.openstreetmap.org/directions?engine=osrm_car&route=";
 const DEFAULT_CENTER = [28.6139, 77.209];
+const FIXED_ZOOM = 11;
 
 export default function CommunityMapPage({ onNavigate }) {
   const [issues, setIssues] = useState([]);
@@ -48,7 +49,7 @@ export default function CommunityMapPage({ onNavigate }) {
         mapRef.current = null;
       }
 
-      const map = window.L.map(container).setView(DEFAULT_CENTER, 12);
+      const map = window.L.map(container).setView(DEFAULT_CENTER, FIXED_ZOOM);
 
       window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution:
@@ -64,8 +65,9 @@ export default function CommunityMapPage({ onNavigate }) {
           (pos) => {
             if (cancelled || !mapRef.current) return;
             const { latitude, longitude } = pos.coords;
-            setUserCoords([latitude, longitude]);
-            mapRef.current.setView([latitude, longitude], 12);
+            const coords = [latitude, longitude];
+            setUserCoords(coords);
+            mapRef.current.setView(coords, FIXED_ZOOM);
           },
           () => {},
           { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 },
@@ -107,22 +109,6 @@ export default function CommunityMapPage({ onNavigate }) {
 
       markersRef.current.push(marker);
     });
-
-    if (issues.length > 0) {
-      const withLoc = issues.filter(
-        (i) =>
-          typeof i?.location?.latitude === "number" &&
-          typeof i?.location?.longitude === "number",
-      );
-      if (withLoc.length > 0) {
-        const points = withLoc.map((i) => [
-          i.location.latitude,
-          i.location.longitude,
-        ]);
-        const bounds = window.L.latLngBounds(points);
-        mapRef.current.fitBounds(bounds.pad(0.15));
-      }
-    }
   }, [issues, userCoords]);
 
   return (
