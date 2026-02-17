@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { API_BASE, getUserIdForApi } from "../../utils/apiBase";
+import IssueModal from "../../components/IssueModal";
 
 export default function CommunityReports({ onNavigate }) {
   const [issues, setIssues] = useState([]);
@@ -7,9 +8,7 @@ export default function CommunityReports({ onNavigate }) {
   const [error, setError] = useState(null);
 
   const userId = useMemo(() => getUserIdForApi(), []);
-  const [openComments, setOpenComments] = useState({});
-  const [comments, setComments] = useState({});
-  const [commentInput, setCommentInput] = useState({});
+  const [selectedIssue, setSelectedIssue] = useState(null);
 
   const fetchIssues = async () => {
     try {
@@ -34,37 +33,6 @@ export default function CommunityReports({ onNavigate }) {
       method: "POST",
       headers: userId ? { "x-user-id": userId } : {},
     });
-    fetchIssues();
-  };
-
-  const toggleComments = async (id) => {
-    setOpenComments((p) => ({ ...p, [id]: !p[id] }));
-
-    if (!comments[id]) {
-      const res = await fetch(
-        `${API_BASE}/api/community/issues/${id}/comments`,
-      );
-      const data = await res.json();
-      setComments((p) => ({ ...p, [id]: data }));
-    }
-  };
-
-  const submitComment = async (id) => {
-    if (!commentInput[id]?.trim()) return;
-
-    const user = JSON.parse(localStorage.getItem("user") || "null");
-    const author = user?.name || "Community User";
-
-    await fetch(`${API_BASE}/api/community/issues/${id}/comments`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ author, content: commentInput[id].trim() }),
-    });
-
-    setCommentInput((p) => ({ ...p, [id]: "" }));
-    const res = await fetch(`${API_BASE}/api/community/issues/${id}/comments`);
-    const data = await res.json();
-    setComments((p) => ({ ...p, [id]: data }));
     fetchIssues();
   };
 
@@ -170,6 +138,12 @@ export default function CommunityReports({ onNavigate }) {
               {issues.map((i) => (
                 <div
                   key={i._id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedIssue(i)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") setSelectedIssue(i);
+                  }}
                   style={{
                     background: "#fff",
                     borderRadius: 16,
@@ -177,6 +151,7 @@ export default function CommunityReports({ onNavigate }) {
                     overflow: "hidden",
                     display: "flex",
                     flexDirection: "column",
+                    cursor: "pointer",
                   }}
                 >
                   <div
@@ -248,7 +223,10 @@ export default function CommunityReports({ onNavigate }) {
                       }}
                     >
                       <button
-                        onClick={() => upvote(i._id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          upvote(i._id);
+                        }}
                         style={{
                           display: "flex",
                           alignItems: "center",
@@ -263,76 +241,19 @@ export default function CommunityReports({ onNavigate }) {
                         👍 {i.upvotes || 0}
                       </button>
 
-                      <button
-                        onClick={() => toggleComments(i._id)}
+                      <div
                         style={{
                           display: "flex",
                           alignItems: "center",
                           gap: 8,
                           fontSize: 15,
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
                           fontWeight: 500,
+                          color: "#2d2d2d",
                         }}
                       >
                         💬 {i.commentCount || 0}
-                      </button>
-                    </div>
-
-                    {openComments[i._id] && (
-                      <div style={{ marginTop: 16 }}>
-                        {(comments[i._id] || []).map((c) => (
-                          <div
-                            key={c._id}
-                            style={{
-                              background: "#f4f4f4",
-                              padding: 10,
-                              borderRadius: 8,
-                              marginBottom: 8,
-                            }}
-                          >
-                            <strong>{c.author}</strong>
-                            <div style={{ marginTop: 4 }}>{c.content}</div>
-                          </div>
-                        ))}
-
-                        <div style={{ display: "flex", marginTop: 8, gap: 8 }}>
-                          <input
-                            placeholder="Write a comment..."
-                            value={commentInput[i._id] || ""}
-                            onChange={(e) =>
-                              setCommentInput((p) => ({
-                                ...p,
-                                [i._id]: e.target.value,
-                              }))
-                            }
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") submitComment(i._id);
-                            }}
-                            style={{
-                              flex: 1,
-                              padding: 8,
-                              borderRadius: 8,
-                              border: "1px solid #ddd",
-                            }}
-                          />
-                          <button
-                            onClick={() => submitComment(i._id)}
-                            style={{
-                              padding: "8px 16px",
-                              background: "#4caf50",
-                              color: "#fff",
-                              border: "none",
-                              borderRadius: 8,
-                              cursor: "pointer",
-                            }}
-                          >
-                            Post
-                          </button>
-                        </div>
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -340,6 +261,14 @@ export default function CommunityReports({ onNavigate }) {
           </main>
         </div>
       </div>
+
+      {selectedIssue && (
+        <IssueModal
+          issue={selectedIssue}
+          onClose={() => setSelectedIssue(null)}
+          onIssueUpdated={fetchIssues}
+        />
+      )}
     </div>
   );
 }
