@@ -1,7 +1,7 @@
 import bg from "../assets/backgrounds/auth-bg.png";
 import shadow from "../assets/illustrations/shadow.png";
 
-export default function AuthLayout({ children }) {
+export default function AuthLayout({ topNav, children }) {
   return (
     <div
       className="auth-container"
@@ -12,6 +12,8 @@ export default function AuthLayout({ children }) {
         backgroundRepeat: "no-repeat",
       }}
     >
+      {topNav}
+
       <div className="auth-shadow">
         <img src={shadow} alt="" />
       </div>

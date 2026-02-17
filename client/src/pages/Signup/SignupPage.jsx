@@ -1,23 +1,23 @@
 import { useState } from "react";
 import AuthLayout from "../../layouts/AuthLayout";
 import Illustration from "../../components/Illustration";
+import AuthTopNavbar from "../../components/AuthTopNavbar";
 
-export default function SignupPage({ onGoToLogin }) {
+export default function SignupPage({ authRole = "user", onNavigate, onGoToLogin }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // ✅ NEW: loading state
   const [loading, setLoading] = useState(false);
 
   const handleSignup = async (e) => {
     e.preventDefault();
 
-    // ✅ Prevent double clicks
     if (loading) return;
 
     if (password !== confirmPassword) {
@@ -25,7 +25,7 @@ export default function SignupPage({ onGoToLogin }) {
       return;
     }
 
-    setLoading(true); // ✅ start loading
+    setLoading(true);
 
     try {
       const res = await fetch("http://localhost:5000/signup", {
@@ -50,12 +50,20 @@ export default function SignupPage({ onGoToLogin }) {
     } catch (err) {
       alert("Server error. Please try again.");
     } finally {
-      setLoading(false); // ✅ stop loading when response arrives
+      setLoading(false);
     }
   };
 
   return (
-    <AuthLayout>
+    <AuthLayout
+      topNav={
+        <AuthTopNavbar
+          variant="signup"
+          activeRole={authRole}
+          onNavigate={onNavigate}
+        />
+      }
+    >
       <div className="auth-form signup-form">
         <h1>Join us to improve your City</h1>
         <p>Create your account and resolve local issues.</p>
@@ -88,6 +96,7 @@ export default function SignupPage({ onGoToLogin }) {
             disabled={loading}
           />
 
+          {/* Password */}
           <div className="password-input-wrapper">
             <input
               type={showPassword ? "text" : "password"}
@@ -96,17 +105,52 @@ export default function SignupPage({ onGoToLogin }) {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
+              autoComplete="new-password"
             />
             <button
               type="button"
               className="password-toggle"
-              onClick={() => setShowPassword(!showPassword)}
+              onClick={() => setShowPassword((prev) => !prev)}
               disabled={loading}
+              aria-label="Toggle password visibility"
             >
-              👁
+              {showPassword ? (
+                /* Eye Off */
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-5 0-9-7-9-7a21.77 21.77 0 0 1 5.06-5.94" />
+                  <path d="M1 1l22 22" />
+                </svg>
+              ) : (
+                /* Eye */
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              )}
             </button>
           </div>
 
+          {/* Confirm Password */}
           <div className="password-input-wrapper">
             <input
               type={showConfirmPassword ? "text" : "password"}
@@ -115,14 +159,46 @@ export default function SignupPage({ onGoToLogin }) {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               disabled={loading}
+              autoComplete="new-password"
             />
             <button
               type="button"
               className="password-toggle"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              onClick={() => setShowConfirmPassword((prev) => !prev)}
               disabled={loading}
+              aria-label="Toggle confirm password visibility"
             >
-              👁
+              {showConfirmPassword ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-5 0-9-7-9-7a21.77 21.77 0 0 1 5.06-5.94" />
+                  <path d="M1 1l22 22" />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              )}
             </button>
           </div>
 
