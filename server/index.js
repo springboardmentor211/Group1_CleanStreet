@@ -19,6 +19,7 @@ app.get("/", (req, res) => {
 app.use("/", require("./routes/authRoutes"));
 app.use("/", require("./routes/complaintRoutes"));
 app.use("/", require("./routes/communityRoutes"));
+app.use("/", require("./routes/adminRoutes"));
 
 mongoose
   .connect(process.env.MONGO_URI)

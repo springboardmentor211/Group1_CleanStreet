@@ -10,6 +10,7 @@ import ProfilePage from "./pages/Profile/ProfilePage";
 import NewReportPage from "./pages/NewReport/NewReportPage";
 import CommunityMapPage from "./pages/CommunityMap/CommunityMapPage";
 import CommunityReports from "./pages/CommunityReports/CommunityReports.jsx";
+import AdminDashboardPage from "./pages/Admin/AdminDashboardPage";
 
 
 function App() {
@@ -54,6 +55,10 @@ function App() {
 
   if (mode === "community-reports") {
     return <CommunityReports onNavigate={handleNavigate} />;
+  }
+
+  if (mode === "admin") {
+    return <AdminDashboardPage onNavigate={handleNavigate} />;
   }
 
   if (mode === "login") {
