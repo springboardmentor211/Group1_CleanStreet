@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function NewReportPage({ onNavigate }) {
   const [user, setUser] = useState(null);
@@ -15,115 +15,140 @@ export default function NewReportPage({ onNavigate }) {
       address: "",
     },
   });
-  const [mapLoaded, setMapLoaded] = useState(false);
+
+  const mapRef = useRef(null);
 
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem("user") || "null");
+    let userData = null;
+    try {
+      const stored = localStorage.getItem("user");
+      userData = stored ? JSON.parse(stored) : null;
+    } catch {
+      localStorage.removeItem("user");
+    }
+
     if (!userData) {
-      alert("Please login first");
       if (onNavigate) onNavigate("login");
       return;
     }
+
     setUser(userData);
-    initMap();
   }, [onNavigate]);
 
-  const initMap = () => {
-    // Initialize map with Leaflet (we'll add the script tag)
-    if (window.L) {
-      const map = window.L.map("map-container").setView([28.6139, 77.209], 13);
+  useEffect(() => {
+    if (!user) return;
 
-      window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      }).addTo(map);
+    const initializeMap = () => {
+      if (!document.getElementById("map-container")) return;
 
-      let marker = null;
+      if (window.L) {
+        if (mapRef.current) return;
 
-      map.on("click", (e) => {
-        const { lat, lng } = e.latlng;
-        if (marker) {
-          map.removeLayer(marker);
-        }
-        marker = window.L.marker([lat, lng]).addTo(map);
-        setFormData((prev) => ({
-          ...prev,
-          location: {
-            ...prev.location,
-            latitude: lat,
-            longitude: lng,
-          },
-        }));
-
-        // Reverse geocode to get address (using Nominatim)
-        fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
-        )
-          .then((res) => res.json())
-          .then((data) => {
-            setFormData((prev) => ({
-              ...prev,
-              location: {
-                ...prev.location,
-                address: data.display_name || "",
-              },
-            }));
-          })
-          .catch(() => {});
-      });
-
-      // Try to get user's current location
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            map.setView([latitude, longitude], 13);
-            const m = window.L.marker([latitude, longitude]).addTo(map);
-            setFormData((prev) => ({
-              ...prev,
-              location: {
-                ...prev.location,
-                latitude,
-                longitude,
-              },
-            }));
-            marker = m;
-          },
-          () => {}
+        const map = window.L.map("map-container").setView(
+          [28.6139, 77.209],
+          13,
         );
+
+        window.L.tileLayer(
+          "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          {
+            attribution:
+              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          },
+        ).addTo(map);
+
+        let marker = null;
+
+        map.on("click", (e) => {
+          const { lat, lng } = e.latlng;
+
+          if (marker) map.removeLayer(marker);
+
+          marker = window.L.marker([lat, lng]).addTo(map);
+
+          setFormData((prev) => ({
+            ...prev,
+            location: {
+              ...prev.location,
+              latitude: lat,
+              longitude: lng,
+            },
+          }));
+
+          fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
+          )
+            .then((res) => res.json())
+            .then((data) => {
+              setFormData((prev) => ({
+                ...prev,
+                location: {
+                  ...prev.location,
+                  address: data.display_name || "",
+                },
+              }));
+            })
+            .catch(() => {});
+        });
+
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const { latitude, longitude } = position.coords;
+              map.setView([latitude, longitude], 13);
+              marker = window.L.marker([latitude, longitude]).addTo(map);
+
+              setFormData((prev) => ({
+                ...prev,
+                location: {
+                  ...prev.location,
+                  latitude,
+                  longitude,
+                },
+              }));
+            },
+            () => {},
+          );
+        }
+
+        mapRef.current = map;
+      } else {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+        document.head.appendChild(link);
+
+        const script = document.createElement("script");
+        script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+        script.onload = initializeMap;
+        document.body.appendChild(script);
       }
+    };
 
-      setMapLoaded(true);
-    } else {
-      // Load Leaflet CSS and JS
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-      document.head.appendChild(link);
+    const timeout = setTimeout(initializeMap, 0);
 
-      const script = document.createElement("script");
-      script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-      script.onload = () => {
-        window.L.Icon.Default.imagePath = "https://unpkg.com/leaflet@1.9.4/dist/images/";
-        initMap();
-      };
-      document.body.appendChild(script);
-    }
-  };
+    return () => {
+      clearTimeout(timeout);
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, [user]);
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({
-          ...formData,
-          photo: reader.result, // base64
-          photoPreview: reader.result,
-        });
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData((prev) => ({
+        ...prev,
+        photo: reader.result,
+        photoPreview: reader.result,
+      }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e) => {
@@ -141,6 +166,7 @@ export default function NewReportPage({ onNavigate }) {
     }
 
     setLoading(true);
+
     try {
       const res = await fetch("http://localhost:5000/complaints", {
         method: "POST",
@@ -164,16 +190,14 @@ export default function NewReportPage({ onNavigate }) {
 
       alert("Complaint submitted successfully!");
       if (onNavigate) onNavigate("home");
-    } catch (err) {
+    } catch {
       alert("Server error. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   return (
     <div className="page-container">
@@ -240,10 +264,12 @@ export default function NewReportPage({ onNavigate }) {
                   <input
                     type="text"
                     className="report-form-input"
-                    placeholder="e.g., Garbage dump near Main Street"
                     value={formData.title}
                     onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
+                      setFormData((prev) => ({
+                        ...prev,
+                        title: e.target.value,
+                      }))
                     }
                     required
                     disabled={loading}
@@ -256,7 +282,10 @@ export default function NewReportPage({ onNavigate }) {
                     className="report-form-input"
                     value={formData.category}
                     onChange={(e) =>
-                      setFormData({ ...formData, category: e.target.value })
+                      setFormData((prev) => ({
+                        ...prev,
+                        category: e.target.value,
+                      }))
                     }
                     required
                     disabled={loading}
@@ -264,7 +293,9 @@ export default function NewReportPage({ onNavigate }) {
                     <option value="garbage">Garbage Dump</option>
                     <option value="pothole">Pothole</option>
                     <option value="water_leakage">Water Leakage</option>
-                    <option value="broken_streetlight">Broken Streetlight</option>
+                    <option value="broken_streetlight">
+                      Broken Streetlight
+                    </option>
                     <option value="other">Other</option>
                   </select>
                 </div>
@@ -273,10 +304,12 @@ export default function NewReportPage({ onNavigate }) {
                   <label className="report-form-label">Description *</label>
                   <textarea
                     className="report-form-textarea"
-                    placeholder="Describe the issue in detail..."
                     value={formData.description}
                     onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
+                      setFormData((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
                     }
                     required
                     rows={4}
@@ -299,11 +332,11 @@ export default function NewReportPage({ onNavigate }) {
                         type="button"
                         className="report-photo-remove"
                         onClick={() =>
-                          setFormData({
-                            ...formData,
+                          setFormData((prev) => ({
+                            ...prev,
                             photo: null,
                             photoPreview: null,
-                          })
+                          }))
                         }
                       >
                         ✕
@@ -329,9 +362,6 @@ export default function NewReportPage({ onNavigate }) {
 
               <div className="report-form-section">
                 <h2 className="report-section-title">Location *</h2>
-                <p className="report-map-hint">
-                  Click on the map to select the location of the issue
-                </p>
                 <div id="map-container" className="report-map" />
                 {formData.location.address && (
                   <div className="report-location-address">
