@@ -2,7 +2,7 @@ import { useState } from "react";
 import AuthLayout from "../../layouts/AuthLayout";
 import Illustration from "../../components/Illustration";
 
-export default function SignupPage({ onGoToLogin }) {
+export default function SignupPage({ onGoToLogin, onGoToAdminLogin, onNavigate }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -10,14 +10,10 @@ export default function SignupPage({ onGoToLogin }) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  // ✅ NEW: loading state
   const [loading, setLoading] = useState(false);
 
   const handleSignup = async (e) => {
     e.preventDefault();
-
-    // ✅ Prevent double clicks
     if (loading) return;
 
     if (password !== confirmPassword) {
@@ -25,18 +21,13 @@ export default function SignupPage({ onGoToLogin }) {
       return;
     }
 
-    setLoading(true); // ✅ start loading
+    setLoading(true);
 
     try {
       const res = await fetch("http://localhost:5000/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email,
-          phone,
-          password,
-        }),
+        body: JSON.stringify({ name, email, phone, password }),
       });
 
       const data = await res.json();
@@ -50,12 +41,19 @@ export default function SignupPage({ onGoToLogin }) {
     } catch (err) {
       alert("Server error. Please try again.");
     } finally {
-      setLoading(false); // ✅ stop loading when response arrives
+      setLoading(false);
     }
   };
 
+  // Build a combined navigate handler
+  const handleNavigate = (mode) => {
+    if (mode === "login" && onGoToLogin) onGoToLogin();
+    else if (mode === "admin-login" && onGoToAdminLogin) onGoToAdminLogin();
+    else if (onNavigate) onNavigate(mode);
+  };
+
   return (
-    <AuthLayout>
+    <AuthLayout onNavigate={handleNavigate}>
       <div className="auth-form signup-form">
         <h1>Join us to improve your City</h1>
         <p>Create your account and resolve local issues.</p>
@@ -126,20 +124,20 @@ export default function SignupPage({ onGoToLogin }) {
             </button>
           </div>
 
-          <div className="signup-terms">
-            <label>
-              <input type="checkbox" required disabled={loading} />
-              <span>I agree to the Terms & Condition.</span>
-            </label>
+          <div className="signup-terms" style={{ marginBottom: "-8px" }}>
+          <label>
+          <input type="checkbox" required disabled={loading} />
+          <span>I agree to the Terms & Condition.</span>
+          </label>
           </div>
 
           <button type="submit" className="signup-button" disabled={loading}>
             {loading ? "Signing up..." : "Sign Up"}
           </button>
 
-          <p className="auth-footer">
-            Already have an account?{" "}
-            <span onClick={!loading ? onGoToLogin : undefined}>Login</span>
+          <p className="auth-footer" style={{ marginTop: "-8px" }}>
+                    Already have an account?{" "}
+              <span onClick={!loading ? onGoToLogin : undefined}>Login</span>
           </p>
         </form>
       </div>

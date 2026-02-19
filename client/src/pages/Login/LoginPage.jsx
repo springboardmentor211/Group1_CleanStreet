@@ -1,20 +1,14 @@
-import AuthLayout from "../../layouts/AuthLayout";
-import LoginForm from "../../components/LoginForm";
-import Illustration from "../../components/Illustration";
+import LoginForm from "../../components/LoginForm.jsx";
+import AuthLayout from "../../layouts/AuthLayout.jsx";
 
-export default function LoginPage({
-  onGoToSignup,
-  onForgotPassword,
-  onLoginSuccess,
-}) {
+export default function LoginPage({ onGoToSignup, onForgotPassword, onLoginSuccess, onNavigate }) {
   return (
-    <AuthLayout>
+    <AuthLayout onNavigate={onNavigate}>
       <LoginForm
         onGoToSignup={onGoToSignup}
         onForgotPassword={onForgotPassword}
         onLoginSuccess={onLoginSuccess}
       />
-      <Illustration />
     </AuthLayout>
   );
 }
