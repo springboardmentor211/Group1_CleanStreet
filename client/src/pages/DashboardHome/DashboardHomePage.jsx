@@ -13,10 +13,12 @@ export default function DashboardHomePage({ onNavigate }) {
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("user") || "null");
+
     if (!userData) {
       if (onNavigate) onNavigate("login");
       return;
     }
+
     setUser(userData);
     fetchStats(userData.id);
   }, [onNavigate]);
@@ -25,13 +27,17 @@ export default function DashboardHomePage({ onNavigate }) {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch(`http://localhost:5000/api/complaints/stats?userId=${userId}`);
-      
+
+      const res = await fetch(
+        `http://localhost:5000/api/complaints/stats?userId=${userId}`,
+      );
+
       if (!res.ok) {
         throw new Error("Failed to fetch statistics");
       }
-      
+
       const data = await res.json();
+
       setStats({
         myComplaints: data.myComplaints || 0,
         resolved: data.resolved || 0,
@@ -39,16 +45,13 @@ export default function DashboardHomePage({ onNavigate }) {
         pending: data.pending || 0,
       });
     } catch (err) {
-      console.error("Error fetching stats:", err);
       setError("Failed to load statistics. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   return (
     <div className="dashboard-home-container">
@@ -75,7 +78,6 @@ export default function DashboardHomePage({ onNavigate }) {
               >
                 My Complaints
               </button>
-              
               <button
                 type="button"
                 className="dashboard-home-nav-link"
@@ -100,12 +102,15 @@ export default function DashboardHomePage({ onNavigate }) {
           </header>
 
           <main className="dashboard-home-main">
-            {/* Hero Section */}
             <section className="dashboard-home-hero">
               <div className="dashboard-home-hero-content">
                 <div className="dashboard-home-hero-text">
                   <h1 className="dashboard-home-hero-title">
-                    Welcome back, <span className="dashboard-home-hero-name">{user.name}</span>!
+                    Welcome back,{" "}
+                    <span className="dashboard-home-hero-name">
+                      {user.name}
+                    </span>
+                    !
                   </h1>
                   <p className="dashboard-home-hero-subtitle">
                     Help make your community cleaner and safer. Report issues,
@@ -130,12 +135,15 @@ export default function DashboardHomePage({ onNavigate }) {
                     <button
                       type="button"
                       className="dashboard-home-cta-tertiary"
-                      onClick={() => onNavigate && onNavigate("community-reports")}
+                      onClick={() =>
+                        onNavigate && onNavigate("community-reports")
+                      }
                     >
                       Track Community Issues
                     </button>
                   </div>
                 </div>
+
                 <div className="dashboard-home-hero-visual">
                   <div className="dashboard-home-illustration">
                     <div className="dashboard-home-city-scene">
@@ -152,10 +160,11 @@ export default function DashboardHomePage({ onNavigate }) {
               </div>
             </section>
 
-            {/* Stats Section */}
             <section className="dashboard-home-stats">
               {loading ? (
-                <div className="dashboard-home-stats-loading">Loading statistics...</div>
+                <div className="dashboard-home-stats-loading">
+                  Loading statistics...
+                </div>
               ) : error ? (
                 <div className="dashboard-home-stats-error">{error}</div>
               ) : (
@@ -163,31 +172,43 @@ export default function DashboardHomePage({ onNavigate }) {
                   <div className="dashboard-home-stat-card">
                     <div className="dashboard-home-stat-icon">📋</div>
                     <div className="dashboard-home-stat-content">
-                      <div className="dashboard-home-stat-value">{stats.myComplaints}</div>
-                      <div className="dashboard-home-stat-label">My Reports</div>
+                      <div className="dashboard-home-stat-value">
+                        {stats.myComplaints}
+                      </div>
+                      <div className="dashboard-home-stat-label">
+                        My Reports
+                      </div>
                     </div>
                   </div>
+
                   <div className="dashboard-home-stat-card">
                     <div className="dashboard-home-stat-icon">✅</div>
                     <div className="dashboard-home-stat-content">
-                      <div className="dashboard-home-stat-value">{stats.resolved}</div>
+                      <div className="dashboard-home-stat-value">
+                        {stats.resolved}
+                      </div>
                       <div className="dashboard-home-stat-label">Resolved</div>
                     </div>
                   </div>
+
                   <div className="dashboard-home-stat-card">
                     <div className="dashboard-home-stat-icon">⏳</div>
                     <div className="dashboard-home-stat-content">
-                      <div className="dashboard-home-stat-value">{stats.inProgress}</div>
-                      <div className="dashboard-home-stat-label">In Progress</div>
+                      <div className="dashboard-home-stat-value">
+                        {stats.inProgress}
+                      </div>
+                      <div className="dashboard-home-stat-label">
+                        In Progress
+                      </div>
                     </div>
                   </div>
                 </>
               )}
             </section>
 
-            {/* Quick Actions */}
             <section className="dashboard-home-quick-actions">
               <h2 className="dashboard-home-section-title">Quick Actions</h2>
+
               <div className="dashboard-home-actions-grid">
                 <button
                   type="button"
@@ -200,6 +221,7 @@ export default function DashboardHomePage({ onNavigate }) {
                     Submit a new complaint with photos and location
                   </p>
                 </button>
+
                 <button
                   type="button"
                   className="dashboard-home-action-card"
@@ -211,6 +233,7 @@ export default function DashboardHomePage({ onNavigate }) {
                     View and track all your submitted reports
                   </p>
                 </button>
+
                 <button
                   type="button"
                   className="dashboard-home-action-card"

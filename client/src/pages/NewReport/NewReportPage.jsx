@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
+import { useToast } from "../../context/ToastContext";
 
 export default function NewReportPage({ onNavigate }) {
+  const { showToast } = useToast();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -156,12 +158,12 @@ export default function NewReportPage({ onNavigate }) {
     if (!user) return;
 
     if (!formData.photo) {
-      alert("Please upload a photo");
+      showToast("Please upload a photo", { type: "warning" });
       return;
     }
 
     if (!formData.location.latitude || !formData.location.longitude) {
-      alert("Please select a location on the map");
+      showToast("Please select a location on the map", { type: "warning" });
       return;
     }
 
@@ -184,14 +186,16 @@ export default function NewReportPage({ onNavigate }) {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.message || "Failed to submit complaint");
+        showToast(data.message || "Failed to submit complaint", {
+          type: "error",
+        });
         return;
       }
 
-      alert("Complaint submitted successfully!");
+      showToast("Complaint submitted successfully!", { type: "success" });
       if (onNavigate) onNavigate("home");
     } catch {
-      alert("Server error. Please try again.");
+      showToast("Server error. Please try again.", { type: "error" });
     } finally {
       setLoading(false);
     }

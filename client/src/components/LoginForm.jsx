@@ -1,16 +1,23 @@
 import { useState } from "react";
+import { useToast } from "../context/ToastContext";
 
 export default function LoginForm({
   onGoToSignup,
   onForgotPassword,
   onLoginSuccess,
 }) {
+  const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    
+    if (loading) return; // Prevent multiple submissions
+
+    setLoading(true);
 
     try {
       const res = await fetch("http://localhost:5000/login", {
@@ -22,18 +29,25 @@ export default function LoginForm({
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data?.message || "Please recheck email and password");
+        showToast(data?.message || "Invalid email or password", {
+          type: "error",
+        });
+        setLoading(false);
         return;
       }
 
-      // Store user data in localStorage
-      if (data.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
+      if (!data.user || !data.user.id) {
+        showToast("Invalid login response from server", { type: "error" });
+        setLoading(false);
+        return;
       }
 
+      localStorage.setItem("user", JSON.stringify(data.user));
+
       if (onLoginSuccess) onLoginSuccess();
-    } catch {
-      alert("Server error. Please try again.");
+    } catch (err) {
+      showToast("Server error. Please try again.", { type: "error" });
+      setLoading(false);
     }
   };
 
@@ -100,7 +114,6 @@ export default function LoginForm({
           </button>
         </div>
 
-        {/* ✅ SAME LINE — checkbox on RIGHT */}
         <div className="form-options">
           <label className="remember-me">
             <span>Remember Me</span>
@@ -108,7 +121,9 @@ export default function LoginForm({
           </label>
         </div>
 
-        <button type="submit">Login</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
+        </button>
       </form>
 
       <p className="auth-footer">

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { useToast } from "../../context/ToastContext";
 
 export default function ProfilePage({ onNavigate }) {
+  const { showToast } = useToast();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -13,7 +15,7 @@ export default function ProfilePage({ onNavigate }) {
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("user") || "null");
     if (!userData) {
-      alert("Please login first");
+      showToast("Please login first", { type: "warning" });
       if (onNavigate) onNavigate("login");
       return;
     }
@@ -26,7 +28,7 @@ export default function ProfilePage({ onNavigate }) {
     if (userData.avatar) {
       setAvatar(userData.avatar);
     }
-  }, [onNavigate]);
+  }, [onNavigate, showToast]);
 
   const handleAvatarClick = () => {
     const input = document.createElement("input");
@@ -62,7 +64,9 @@ export default function ProfilePage({ onNavigate }) {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.message || "Failed to update profile");
+        showToast(data.message || "Failed to update profile", {
+          type: "error",
+        });
         return;
       }
 
@@ -72,10 +76,10 @@ export default function ProfilePage({ onNavigate }) {
         localStorage.setItem("user", JSON.stringify(updatedUser));
         setUser(updatedUser);
         setEditMode(false);
-        alert("Profile updated successfully!");
+        showToast("Profile updated successfully!", { type: "success" });
       }
     } catch (err) {
-      alert("Server error. Please try again.");
+      showToast("Server error. Please try again.", { type: "error" });
     } finally {
       setLoading(false);
     }

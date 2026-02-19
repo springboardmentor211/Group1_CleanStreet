@@ -2,8 +2,10 @@ import { useState } from "react";
 import AuthLayout from "../../layouts/AuthLayout";
 import Illustration from "../../components/Illustration";
 import AuthTopNavbar from "../../components/AuthTopNavbar";
+import { useToast } from "../../context/ToastContext";
 
 export default function SignupPage({ authRole = "user", onNavigate, onGoToLogin }) {
+  const { showToast } = useToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -15,13 +17,29 @@ export default function SignupPage({ authRole = "user", onNavigate, onGoToLogin 
 
   const [loading, setLoading] = useState(false);
 
+  const getPasswordValidationError = (value) => {
+    if (value.length < 8) return "Password must be at least 8 characters long.";
+    if (!/[A-Za-z]/.test(value)) return "Password must include at least 1 letter.";
+    if (!/\d/.test(value)) return "Password must include at least 1 number.";
+    if (!/[^A-Za-z0-9]/.test(value)) {
+      return "Password must include at least 1 symbol.";
+    }
+    return null;
+  };
+
   const handleSignup = async (e) => {
     e.preventDefault();
 
     if (loading) return;
 
+    const passwordError = getPasswordValidationError(password);
+    if (passwordError) {
+      showToast(passwordError, { type: "error" });
+      return;
+    }
+
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      showToast("Passwords do not match", { type: "error" });
       return;
     }
 
@@ -42,13 +60,13 @@ export default function SignupPage({ authRole = "user", onNavigate, onGoToLogin 
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.message);
+        showToast(data.message || "Signup failed.", { type: "error" });
       } else {
-        alert("Signup successful");
+        showToast("Signup successful", { type: "success" });
         onGoToLogin();
       }
     } catch (err) {
-      alert("Server error. Please try again.");
+      showToast("Server error. Please try again.", { type: "error" });
     } finally {
       setLoading(false);
     }
@@ -105,6 +123,7 @@ export default function SignupPage({ authRole = "user", onNavigate, onGoToLogin 
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
+              minLength={8}
               autoComplete="new-password"
             />
             <button
@@ -149,6 +168,9 @@ export default function SignupPage({ authRole = "user", onNavigate, onGoToLogin 
               )}
             </button>
           </div>
+          <p className="auth-password-hint">
+            Use at least 8 characters with 1 letter, 1 number, and 1 symbol.
+          </p>
 
           {/* Confirm Password */}
           <div className="password-input-wrapper">

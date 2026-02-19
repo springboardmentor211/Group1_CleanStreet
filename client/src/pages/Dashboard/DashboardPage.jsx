@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { useToast } from "../../context/ToastContext";
 
 export default function DashboardPage({ onNavigate }) {
+  const { showToast } = useToast();
   const [user, setUser] = useState(null);
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -8,13 +10,13 @@ export default function DashboardPage({ onNavigate }) {
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("user") || "null");
     if (!userData) {
-      alert("Please login first");
+      showToast("Please login first", { type: "warning" });
       if (onNavigate) onNavigate("login");
       return;
     }
     setUser(userData);
     fetchComplaints(userData.id);
-  }, [onNavigate]);
+  }, [onNavigate, showToast]);
 
   const fetchComplaints = async (userId) => {
     try {
@@ -31,7 +33,9 @@ export default function DashboardPage({ onNavigate }) {
       setComplaints(data);
     } catch (err) {
       console.error("Error fetching complaints:", err);
-      alert("Failed to load complaints. Please try again.");
+      showToast("Failed to load complaints. Please try again.", {
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
