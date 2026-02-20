@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "./AdminDashboard.css";
+import { API_BASE } from "../../utils/apiBase";
 import cleanStreetLogo from "../../assets/illustrations/13300e7a-6ca5-4b88-b861-9bd2d84036eb 5.png";
 import adminShieldIcon from "../../assets/illustrations/User Shield.jpg";
 import surveyIcon from "../../assets/illustrations/Survey.png";
@@ -10,7 +11,6 @@ import editPencilIcon from "../../assets/illustrations/Edit Pencil.png";
 import showPropertyIcon from "../../assets/illustrations/Show Property.png";
 import peopleIcon from "../../assets/illustrations/People.png";
 import usersMenuIcon from "../../assets/illustrations/Users.png";
-import reportsMenuIcon from "../../assets/illustrations/Heat Map.png";
 import complaintsMenuIcon from "../../assets/illustrations/Edit Property.png";
 
 const MOCK_USER = {
@@ -20,93 +20,19 @@ const MOCK_USER = {
   role: "admin",
 };
 
-const MOCK_COMPLAINTS = [
-  {
-    _id: "cmp-1",
-    title: "Overflowing garbage bins",
-    description:
-      "Garbage bins near Central Park are overflowing and attracting stray animals.",
-    category: "garbage",
-    status: "pending",
-    createdAt: "2026-02-18T09:30:00.000Z",
-    photo:
-      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=300&q=60",
-  },
-  {
-    _id: "cmp-2",
-    title: "Large pothole on main road",
-    description:
-      "There is a deep pothole on 5th Avenue causing traffic slowdown and bike accidents.",
-    category: "pothole",
-    status: "in_progress",
-    createdAt: "2026-02-17T14:20:00.000Z",
-    photo:
-      "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=300&q=60",
-  },
-  {
-    _id: "cmp-3",
-    title: "Broken streetlight in residential lane",
-    description:
-      "Streetlight has been out for several nights, making the lane unsafe.",
-    category: "broken_streetlight",
-    status: "resolved",
-    createdAt: "2026-02-16T20:10:00.000Z",
-    photo:
-      "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=300&q=60",
-  },
-  {
-    _id: "cmp-4",
-    title: "Water leakage near bus stop",
-    description:
-      "Constant water leakage from a roadside pipe is flooding the footpath.",
-    category: "water_leakage",
-    status: "rejected",
-    createdAt: "2026-02-15T08:45:00.000Z",
-    photo:
-      "https://images.unsplash.com/photo-1559827260-dc66d52bef19?auto=format&fit=crop&w=300&q=60",
-  },
-];
+const STATIC_TOTAL_REVIEWS = "4k+";
+const STATIC_RESOLVED_TODAY = 1;
+const EDITABLE_STATUSES = ["pending", "in_progress", "resolved"];
+const DASHBOARD_TABS = ["overview", "users", "manage"];
 
-const MOCK_USERS = [
-  {
-    _id: "usr-1",
-    name: "Aarav Singh",
-    email: "aarav@example.com",
-    complaintCount: 3,
-    createdAt: "2026-01-14T11:00:00.000Z",
-  },
-  {
-    _id: "usr-2",
-    name: "Sara Khan",
-    email: "sara@example.com",
-    complaintCount: 1,
-    createdAt: "2026-01-21T15:30:00.000Z",
-  },
-  {
-    _id: "usr-3",
-    name: "Noah Lee",
-    email: "noah@example.com",
-    complaintCount: 2,
-    createdAt: "2026-02-02T10:10:00.000Z",
-  },
-];
-
-const buildStats = (complaintList, userList) => ({
-  totalComplaints: complaintList.length,
-  pendingComplaints: complaintList.filter((c) => c.status === "pending").length,
-  activeUsers: userList.length,
-  resolvedToday: complaintList.filter((c) => c.status === "resolved").length,
-});
+function getInitialDashboardTab() {
+  const stored = sessionStorage.getItem("adminActiveTab");
+  return DASHBOARD_TABS.includes(stored) ? stored : "overview";
+}
 
 export default function AdminDashboardPage({ onNavigate }) {
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState("overview");
-  const [stats, setStats] = useState({
-    totalComplaints: 0,
-    pendingComplaints: 0,
-    activeUsers: 0,
-    resolvedToday: 0,
-  });
+  const [activeTab, setActiveTab] = useState(getInitialDashboardTab);
   const [complaints, setComplaints] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -114,49 +40,112 @@ export default function AdminDashboardPage({ onNavigate }) {
   const [filterStatus, setFilterStatus] = useState("all");
 
   useEffect(() => {
+    let isCancelled = false;
     const userData = JSON.parse(localStorage.getItem("user") || "null");
     const dashboardUser = userData || MOCK_USER;
-
     setUser(dashboardUser);
-    setComplaints(MOCK_COMPLAINTS);
-    setUsers(MOCK_USERS);
-    setStats(buildStats(MOCK_COMPLAINTS, MOCK_USERS));
-    setLoading(false);
-  }, [onNavigate]);
 
-  const updateComplaintStatus = (complaintId, newStatus) => {
-    setResolvingComplaint(complaintId);
+    const loadDashboardData = async () => {
+      setLoading(true);
+      try {
+        const [complaintsResult, usersResult] = await Promise.allSettled([
+          fetch(`${API_BASE}/api/admin/complaints`),
+          fetch(`${API_BASE}/api/admin/users`),
+        ]);
 
-    const updatedComplaints = complaints.map((c) =>
-      c._id === complaintId ? { ...c, status: newStatus } : c,
-    );
+        let complaintList = [];
+        let userList = [];
 
-    setComplaints(updatedComplaints);
-    setStats(buildStats(updatedComplaints, users));
-    setResolvingComplaint(null);
-  };
+        if (
+          complaintsResult.status === "fulfilled" &&
+          complaintsResult.value.ok
+        ) {
+          const payload = await complaintsResult.value
+            .json()
+            .catch(() => ({ complaints: [] }));
+          complaintList = Array.isArray(payload?.complaints)
+            ? payload.complaints
+            : [];
+        }
 
-  const generateReport = () => {
-    const report = {
-      generatedAt: new Date().toISOString(),
-      admin: user?.name || MOCK_USER.name,
-      stats,
-      complaints: complaints.length,
-      users: users.length,
+        if (usersResult.status === "fulfilled" && usersResult.value.ok) {
+          const payload = await usersResult.value
+            .json()
+            .catch(() => ({ users: [] }));
+          userList = Array.isArray(payload?.users) ? payload.users : [];
+        }
+
+        if (!isCancelled) {
+          setComplaints(complaintList);
+          setUsers(userList);
+        }
+      } catch (error) {
+        console.error("Failed to load admin dashboard data:", error);
+        if (!isCancelled) {
+          setComplaints([]);
+          setUsers([]);
+        }
+      } finally {
+        if (!isCancelled) {
+          setLoading(false);
+        }
+      }
     };
 
-    const blob = new Blob([JSON.stringify(report, null, 2)], {
-      type: "application/json",
-    });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    loadDashboardData();
 
-    a.href = url;
-    a.download = `admin-report-${new Date().toISOString().split("T")[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    sessionStorage.setItem("adminActiveTab", activeTab);
+  }, [activeTab]);
+
+  const updateComplaintStatus = async (complaintId, newStatus) => {
+    if (!EDITABLE_STATUSES.includes(newStatus)) {
+      return;
+    }
+
+    setResolvingComplaint(complaintId);
+
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/admin/complaints/${complaintId}/status`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus }),
+        },
+      );
+
+      const payload = await response
+        .json()
+        .catch(() => ({ complaint: { status: newStatus } }));
+
+      if (!response.ok) {
+        throw new Error(payload?.message || "Failed to update complaint status");
+      }
+
+      const updatedComplaint = payload?.complaint;
+
+      setComplaints((prev) =>
+        prev.map((c) =>
+          c._id === complaintId
+            ? {
+                ...c,
+                ...updatedComplaint,
+                status: updatedComplaint?.status || newStatus,
+              }
+            : c,
+        ),
+      );
+    } catch (error) {
+      console.error("Failed to update complaint status:", error);
+    } finally {
+      setResolvingComplaint(null);
+    }
   };
 
   const getStatusColor = (status) => {
@@ -187,10 +176,17 @@ export default function AdminDashboardPage({ onNavigate }) {
     return labels[category] || "Other";
   };
 
+  const getEditableStatus = (status) =>
+    EDITABLE_STATUSES.includes(status) ? status : "pending";
+
   const filteredComplaints = complaints.filter((c) =>
     filterStatus === "all" ? true : c.status === filterStatus,
   );
 
+  const totalComplaints = complaints.length;
+  const pendingComplaints = complaints.filter(
+    (c) => c.status === "pending",
+  ).length;
   const resolvedCount = complaints.filter(
     (c) => c.status === "resolved",
   ).length;
@@ -199,11 +195,12 @@ export default function AdminDashboardPage({ onNavigate }) {
       new Date(c.createdAt).toLocaleDateString() ===
       new Date().toLocaleDateString(),
   ).length;
+
   const overviewCards = [
     {
       id: "total-complaints",
       icon: surveyIcon,
-      value: stats.totalComplaints,
+      value: totalComplaints,
       label: "Total Complaints",
     },
     {
@@ -215,13 +212,13 @@ export default function AdminDashboardPage({ onNavigate }) {
     {
       id: "total-reviews",
       icon: thumbsIcon,
-      value: "4k+",
+      value: STATIC_TOTAL_REVIEWS,
       label: "Total Reviews",
     },
     {
       id: "pending-works",
       icon: dragListIcon,
-      value: stats.pendingComplaints,
+      value: pendingComplaints,
       label: "Pending Works",
     },
     {
@@ -233,7 +230,7 @@ export default function AdminDashboardPage({ onNavigate }) {
     {
       id: "resolved-today",
       icon: showPropertyIcon,
-      value: stats.resolvedToday,
+      value: STATIC_RESOLVED_TODAY,
       label: "Resolved Today",
     },
   ];
@@ -276,37 +273,6 @@ export default function AdminDashboardPage({ onNavigate }) {
               <span className="admin-logo-text">CLEAN STREET</span>
             </div>
 
-            <nav className="admin-nav">
-              <button
-                type="button"
-                className={`admin-nav-link ${activeTab === "overview" ? "active" : ""}`}
-                onClick={() => setActiveTab("overview")}
-              >
-                Dashboard
-              </button>
-              <button
-                type="button"
-                className={`admin-nav-link ${activeTab === "manage" ? "active" : ""}`}
-                onClick={() => setActiveTab("manage")}
-              >
-                Report Issue
-              </button>
-              <button
-                type="button"
-                className={`admin-nav-link ${activeTab === "users" ? "active" : ""}`}
-                onClick={() => setActiveTab("users")}
-              >
-                View Complaint
-              </button>
-              <button
-                type="button"
-                className={`admin-nav-link admin-active ${activeTab === "reports" ? "active" : ""}`}
-                onClick={() => setActiveTab("reports")}
-              >
-                Admin
-              </button>
-            </nav>
-
             <div className="admin-header-actions">
               <button
                 type="button"
@@ -347,15 +313,11 @@ export default function AdminDashboardPage({ onNavigate }) {
                   <span className="admin-menu-item-label">Users</span>
                 </button>
                 <button
-                  className={`admin-menu-item ${activeTab === "reports" ? "active" : ""}`}
-                  onClick={() => setActiveTab("reports")}
+                  className="admin-menu-item"
+                  onClick={() => onNavigate && onNavigate("admin-profile")}
                 >
-                  <img
-                    src={reportsMenuIcon}
-                    alt=""
-                    className="admin-menu-icon"
-                  />
-                  <span className="admin-menu-item-label">Reports</span>
+                  <img src={adminShieldIcon} alt="" className="admin-menu-icon" />
+                  <span className="admin-menu-item-label">Profile</span>
                 </button>
                 <button
                   className={`admin-menu-item ${activeTab === "manage" ? "active" : ""}`}
@@ -447,7 +409,6 @@ export default function AdminDashboardPage({ onNavigate }) {
                         <option value="pending">Pending</option>
                         <option value="in_progress">In Progress</option>
                         <option value="resolved">Resolved</option>
-                        <option value="rejected">Rejected</option>
                       </select>
                     </div>
                   </div>
@@ -506,7 +467,7 @@ export default function AdminDashboardPage({ onNavigate }) {
                           </div>
                           <div className="admin-complaint-actions">
                             <select
-                              value={complaint.status}
+                              value={getEditableStatus(complaint.status)}
                               onChange={(e) =>
                                 updateComplaintStatus(
                                   complaint._id,
@@ -519,7 +480,6 @@ export default function AdminDashboardPage({ onNavigate }) {
                               <option value="pending">Pending</option>
                               <option value="in_progress">In Progress</option>
                               <option value="resolved">Resolved</option>
-                              <option value="rejected">Rejected</option>
                             </select>
                           </div>
                         </div>
@@ -531,7 +491,9 @@ export default function AdminDashboardPage({ onNavigate }) {
 
               {activeTab === "users" && (
                 <div className="admin-section">
-                  <h2 className="admin-section-title">User Management</h2>
+                  <h2 className="admin-section-title">
+                    User Management ({users.length})
+                  </h2>
 
                   <div className="admin-users-table">
                     <table className="admin-table">
@@ -574,66 +536,6 @@ export default function AdminDashboardPage({ onNavigate }) {
                 </div>
               )}
 
-              {activeTab === "reports" && (
-                <div className="admin-section">
-                  <h2 className="admin-section-title">Generate Reports</h2>
-
-                  <div className="admin-reports-grid">
-                    <div className="admin-report-card">
-                      <div className="admin-report-icon">System</div>
-                      <h3>System Report</h3>
-                      <p>
-                        Complete system overview including complaints, users,
-                        and statistics
-                      </p>
-                      <button
-                        className="admin-report-btn"
-                        onClick={generateReport}
-                      >
-                        Download Report
-                      </button>
-                    </div>
-
-                    <div className="admin-report-card">
-                      <div className="admin-report-icon">Analytics</div>
-                      <h3>Complaint Analytics</h3>
-                      <p>
-                        Detailed analysis of complaints by category and status
-                      </p>
-                      <button
-                        className="admin-report-btn"
-                        onClick={generateReport}
-                      >
-                        Download Report
-                      </button>
-                    </div>
-
-                    <div className="admin-report-card">
-                      <div className="admin-report-icon">Users</div>
-                      <h3>User Activity Report</h3>
-                      <p>Monitor user activities and engagement metrics</p>
-                      <button
-                        className="admin-report-btn"
-                        onClick={generateReport}
-                      >
-                        Download Report
-                      </button>
-                    </div>
-
-                    <div className="admin-report-card">
-                      <div className="admin-report-icon">Geo</div>
-                      <h3>Geographic Distribution</h3>
-                      <p>Issues mapped by location and category</p>
-                      <button
-                        className="admin-report-btn"
-                        onClick={generateReport}
-                      >
-                        Download Report
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </main>
         </div>

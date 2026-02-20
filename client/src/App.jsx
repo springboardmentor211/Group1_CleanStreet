@@ -13,6 +13,7 @@ import NewReportPage from "./pages/NewReport/NewReportPage";
 import CommunityMapPage from "./pages/CommunityMap/CommunityMapPage";
 import CommunityReports from "./pages/CommunityReports/CommunityReports.jsx";
 import AdminDashboardPage from "./pages/Admin/AdminDashboardPage";
+import AdminProfilePage from "./pages/Admin/AdminProfilePage";
 
 function normalizePathname(pathname) {
   if (!pathname || typeof pathname !== "string") return "/signup";
@@ -36,6 +37,7 @@ function modeFromPath(pathname) {
   if (p === "/community-reports") return "community-reports";
   if (p === "/landing") return "landing";
   if (p === "/admin/dashboard") return "admin-dashboard";
+  if (p === "/admin/profile") return "admin-profile";
 
   return null;
 }
@@ -110,6 +112,7 @@ function App() {
       login: "/admin/login",
       signup: "/admin/signup",
       "admin-dashboard": "/admin/dashboard",
+      "admin-profile": "/admin/profile",
       home: "/",
       "my-complaints": "/my-complaints",
       profile: "/profile",
@@ -221,6 +224,10 @@ function App() {
 
   if (mode === "admin-dashboard") {
     return <AdminDashboardPage onNavigate={handleAdminNavigate} />;
+  }
+
+  if (mode === "admin-profile") {
+    return <AdminProfilePage onNavigate={handleAdminNavigate} />;
   }
 
   return (

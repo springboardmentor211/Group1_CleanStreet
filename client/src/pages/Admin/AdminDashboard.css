@@ -109,8 +109,8 @@
 
 .admin-header {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: end;
+  grid-template-columns: auto 1fr;
+  align-items: center;
   gap: 1.65rem;
   padding: 0 1.6rem 1rem;
   border-bottom: 1px solid var(--admin-outline);
@@ -176,6 +176,7 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  justify-self: end;
 }
 
 .admin-logout {
