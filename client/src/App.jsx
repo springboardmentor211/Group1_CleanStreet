@@ -67,6 +67,14 @@ function App() {
 
     setPath(next);
 
+    // Persist admin path for later reloads
+    if (next.startsWith('/admin/')) {
+      localStorage.setItem('lastAdminPath', next);
+    } else if (next === '/' || next === '/login' || next === '/signup') {
+      // Clear stored admin path when navigating away from admin area
+      localStorage.removeItem('lastAdminPath');
+    }
+
     const nextMode = modeFromPath(next);
     if (nextMode) setMode(nextMode);
   };
@@ -97,7 +105,7 @@ function App() {
       "community-reports": "/community-reports",
       "landing": "/landing",
     };
-    
+
     const targetPath = modeToPath[newMode];
     if (targetPath) {
       navigate(targetPath);
@@ -131,7 +139,13 @@ function App() {
     handleNavigate(newMode);
   };
 
-  // ========= AUTH ROUTES =========
+  // Restore admin path on initial load if present
+  useEffect(() => {
+    const savedAdminPath = localStorage.getItem('lastAdminPath');
+    if (savedAdminPath && savedAdminPath !== path) {
+      navigate(savedAdminPath, { replace: true });
+    }
+  }, []);
 
   const authRole = roleFromPath(path);
   const signupPath = authRole === "admin" ? "/admin/signup" : "/signup";
