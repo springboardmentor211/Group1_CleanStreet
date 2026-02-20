@@ -4,7 +4,14 @@ import Illustration from "../../components/Illustration";
 import AuthTopNavbar from "../../components/AuthTopNavbar";
 import { useToast } from "../../context/ToastContext";
 
-export default function SignupPage({ authRole = "user", onNavigate, onGoToLogin }) {
+export default function SignupPage({
+  authRole = "user",
+  onNavigate,
+  onGoToLogin,
+  title = "Join us to improve your City",
+  subtitle = "Create your account and resolve local issues.",
+  adminBadge = "",
+}) {
   const { showToast } = useToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -83,8 +90,9 @@ export default function SignupPage({ authRole = "user", onNavigate, onGoToLogin 
       }
     >
       <div className="auth-form signup-form">
-        <h1>Join us to improve your City</h1>
-        <p>Create your account and resolve local issues.</p>
+        {adminBadge ? <span className="auth-role-badge">{adminBadge}</span> : null}
+        <h1>{title}</h1>
+        <p>{subtitle}</p>
 
         <form onSubmit={handleSignup}>
           <input

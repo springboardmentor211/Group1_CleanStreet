@@ -5,6 +5,9 @@ export default function LoginForm({
   onGoToSignup,
   onForgotPassword,
   onLoginSuccess,
+  title = "Welcome Back!",
+  subtitle = "Login to your account.",
+  adminBadge = "",
 }) {
   const { showToast } = useToast();
   const [email, setEmail] = useState("");
@@ -53,8 +56,9 @@ export default function LoginForm({
 
   return (
     <div className="auth-form">
-      <h1>Welcome Back!</h1>
-      <p>Login to your account.</p>
+      {adminBadge ? <span className="auth-role-badge">{adminBadge}</span> : null}
+      <h1>{title}</h1>
+      <p>{subtitle}</p>
 
       <form onSubmit={handleLogin}>
         <input

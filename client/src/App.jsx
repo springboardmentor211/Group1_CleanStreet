@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import LoginPage from "./pages/Login/LoginPage";
 import SignupPage from "./pages/Signup/SignupPage";
+import AdminLoginPage from "./pages/AdminLogin/AdminLoginPage";
+import AdminSignupPage from "./pages/AdminSignup/AdminSignupPage";
 import OtpPage from "./pages/Otp/OtpPage";
 import ResetPassword from "./pages/ResetPassword/ResetPassword";
 import HomePage from "./pages/Home/HomePage";
@@ -108,6 +110,17 @@ function App() {
   const loginPath = authRole === "admin" ? "/admin/login" : "/login";
 
   if (mode === "login") {
+    if (authRole === "admin") {
+      return (
+        <AdminLoginPage
+          onNavigate={navigate}
+          onGoToSignup={() => navigate("/admin/signup")}
+          onForgotPassword={() => navigate("/otp")}
+          onLoginSuccess={() => navigate("/", { replace: true })}
+        />
+      );
+    }
+
     return (
       <LoginPage
         authRole={authRole}
@@ -120,6 +133,15 @@ function App() {
   }
 
   if (mode === "signup") {
+    if (authRole === "admin") {
+      return (
+        <AdminSignupPage
+          onNavigate={navigate}
+          onGoToLogin={() => navigate("/admin/login")}
+        />
+      );
+    }
+
     return (
       <SignupPage
         authRole={authRole}
