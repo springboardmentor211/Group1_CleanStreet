@@ -18,7 +18,7 @@ const FALLBACK_ADMIN = {
   avatar: "",
 };
 
-const getAdminId = (user) => user?.id || user?._id || "";
+const getAdminId = (user) => user?.id || user?._id || user?.userId || "";
 
 const getInitials = (name = "") =>
   name
@@ -35,6 +35,20 @@ const formatDate = (value) => {
   }
   return parsed.toLocaleDateString();
 };
+
+async function readApiPayload(response) {
+  const raw = await response.text();
+
+  if (!raw) {
+    return { payload: {}, raw };
+  }
+
+  try {
+    return { payload: JSON.parse(raw), raw };
+  } catch {
+    return { payload: {}, raw };
+  }
+}
 
 export default function AdminProfilePage({ onNavigate }) {
   const { showToast } = useToast();
@@ -66,9 +80,17 @@ export default function AdminProfilePage({ onNavigate }) {
         const adminId = getAdminId(stored);
 
         const response = await fetch(`${API_BASE}/api/admin/profile/${adminId}`);
-        const payload = await response.json().catch(() => ({}));
+        const { payload, raw } = await readApiPayload(response);
 
         if (!response.ok) {
+          if (
+            response.status === 404 &&
+            raw.includes("Cannot GET /api/admin/profile/")
+          ) {
+            throw new Error(
+              "Admin profile API route is not loaded on backend (stale server instance).",
+            );
+          }
           throw new Error(payload?.message || "Failed to load admin profile");
         }
 
@@ -130,8 +152,16 @@ export default function AdminProfilePage({ onNavigate }) {
           },
         );
 
-        const payload = await response.json().catch(() => ({}));
+        const { payload, raw } = await readApiPayload(response);
         if (!response.ok) {
+          if (
+            response.status === 404 &&
+            raw.includes("Cannot PATCH /api/admin/profile/")
+          ) {
+            throw new Error(
+              "Admin profile photo API route is not loaded on backend (stale server instance).",
+            );
+          }
           throw new Error(payload?.message || "Photo upload failed");
         }
 
@@ -141,8 +171,10 @@ export default function AdminProfilePage({ onNavigate }) {
           showToast("Profile photo updated successfully.", { type: "success" });
         }
       } catch (error) {
-        console.error("Admin profile photo upload failed:", error);
-        showToast("Failed to update profile photo.", { type: "error" });
+        console.error("Admin profile photo upload failed:", error?.message || error);
+        showToast(error?.message || "Failed to update profile photo.", {
+          type: "error",
+        });
       } finally {
         setUploadingPhoto(false);
       }
