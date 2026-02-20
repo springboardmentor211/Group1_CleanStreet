@@ -2,8 +2,20 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
 const User = require("../models/User");
+const { getAdminUserModel } = require("../models/AdminUser");
 
 const router = express.Router();
+
+const toUserResponse = (user) => ({
+  id: user._id.toString(),
+  name: user.name,
+  email: user.email,
+  phone: user.phone,
+  role: user.role || "user",
+  avatar: user.avatar || null,
+});
+
+const normalizeEmail = (email = "") => email.trim().toLowerCase();
 
 /* =====================
    SIGNUP
@@ -12,7 +24,8 @@ router.post("/signup", async (req, res) => {
   const { name, email, phone, password } = req.body;
 
   try {
-    const existingUser = await User.findOne({ email });
+    const normalizedEmail = normalizeEmail(email);
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({ message: "Email already exists" });
     }
@@ -21,9 +34,10 @@ router.post("/signup", async (req, res) => {
 
     const user = new User({
       name,
-      email,
+      email: normalizedEmail,
       phone,
       password: hashedPassword,
+      role: "user",
     });
 
     await user.save();
@@ -41,7 +55,8 @@ router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const normalizedEmail = normalizeEmail(email);
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
@@ -52,18 +67,84 @@ router.post("/login", async (req, res) => {
     }
 
     // Login success - return user data (without password)
-    const userData = {
-      id: user._id.toString(),
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      role: user.role || "user",
-      avatar: user.avatar || null,
-    };
+    const userData = toUserResponse(user);
 
-    res.status(200).json({ 
+    res.status(200).json({
       message: "Login successful",
-      user: userData
+      user: userData,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* =====================
+   ADMIN SIGNUP
+===================== */
+router.post("/admin/signup", async (req, res) => {
+  const { name, email, phone, password } = req.body;
+
+  try {
+    const AdminUser = getAdminUserModel();
+    const normalizedEmail = normalizeEmail(email);
+    const [existingAdmin, existingUser] = await Promise.all([
+      AdminUser.findOne({ email: normalizedEmail }),
+      User.findOne({ email: normalizedEmail }),
+    ]);
+
+    if (existingAdmin || existingUser) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const admin = new AdminUser({
+      name,
+      email: normalizedEmail,
+      phone,
+      password: hashedPassword,
+      role: "admin",
+    });
+
+    await admin.save();
+
+    res.status(201).json({ message: "Admin signup successful" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* =====================
+   ADMIN LOGIN
+===================== */
+router.post("/admin/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const AdminUser = getAdminUserModel();
+    const normalizedEmail = normalizeEmail(email);
+    let user = await AdminUser.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      // Backward compatibility for older admin accounts already saved
+      // in the shared user collection before admin DB separation.
+      user = await User.findOne({ email: normalizedEmail, role: "admin" });
+    }
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    const userData = toUserResponse(user);
+
+    res.status(200).json({
+      message: "Login successful",
+      user: userData,
     });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -96,18 +177,11 @@ router.put("/user/:id", async (req, res) => {
     await user.save();
 
     // Return updated user data (without password)
-    const userData = {
-      id: user._id.toString(),
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      role: user.role || "user",
-      avatar: user.avatar || null,
-    };
+    const userData = toUserResponse(user);
 
-    res.status(200).json({ 
+    res.status(200).json({
       message: "Profile updated successfully",
-      user: userData
+      user: userData,
     });
   } catch (err) {
     console.error("Profile update error:", err);

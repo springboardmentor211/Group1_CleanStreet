@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useToast } from "../context/ToastContext";
+import { API_BASE } from "../utils/apiBase";
 
 export default function LoginForm({
   onGoToSignup,
@@ -8,6 +9,7 @@ export default function LoginForm({
   title = "Welcome Back!",
   subtitle = "Login to your account.",
   adminBadge = "",
+  loginEndpoint = "/login",
 }) {
   const { showToast } = useToast();
   const [email, setEmail] = useState("");
@@ -23,7 +25,7 @@ export default function LoginForm({
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/login", {
+      const res = await fetch(`${API_BASE}${loginEndpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

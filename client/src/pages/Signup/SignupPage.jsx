@@ -3,6 +3,7 @@ import AuthLayout from "../../layouts/AuthLayout";
 import Illustration from "../../components/Illustration";
 import AuthTopNavbar from "../../components/AuthTopNavbar";
 import { useToast } from "../../context/ToastContext";
+import { API_BASE } from "../../utils/apiBase";
 
 export default function SignupPage({
   authRole = "user",
@@ -11,6 +12,8 @@ export default function SignupPage({
   title = "Join us to improve your City",
   subtitle = "Create your account and resolve local issues.",
   adminBadge = "",
+  signupEndpoint = "/signup",
+  signupRole = "user",
 }) {
   const { showToast } = useToast();
   const [name, setName] = useState("");
@@ -53,7 +56,7 @@ export default function SignupPage({
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/signup", {
+      const res = await fetch(`${API_BASE}${signupEndpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -61,6 +64,7 @@ export default function SignupPage({
           email,
           phone,
           password,
+          role: signupRole,
         }),
       });
 

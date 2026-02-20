@@ -9,6 +9,8 @@ export default function AdminSignupPage({ onNavigate, onGoToLogin }) {
       title="Signup as Admin"
       subtitle="Create an admin account to manage reports and community operations."
       adminBadge="Administrator Onboarding"
+      signupEndpoint="/admin/signup"
+      signupRole="admin"
     />
   );
 }

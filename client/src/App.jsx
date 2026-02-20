@@ -12,6 +12,7 @@ import ProfilePage from "./pages/Profile/ProfilePage";
 import NewReportPage from "./pages/NewReport/NewReportPage";
 import CommunityMapPage from "./pages/CommunityMap/CommunityMapPage";
 import CommunityReports from "./pages/CommunityReports/CommunityReports.jsx";
+import AdminDashboardPage from "./pages/Admin/AdminDashboardPage";
 
 function normalizePathname(pathname) {
   if (!pathname || typeof pathname !== "string") return "/signup";
@@ -34,6 +35,7 @@ function modeFromPath(pathname) {
   if (p === "/community-map") return "community-map";
   if (p === "/community-reports") return "community-reports";
   if (p === "/landing") return "landing";
+  if (p === "/admin/dashboard") return "admin-dashboard";
 
   return null;
 }
@@ -103,6 +105,29 @@ function App() {
     }
   };
 
+  const handleAdminNavigate = (newMode) => {
+    const modeToPath = {
+      login: "/admin/login",
+      signup: "/admin/signup",
+      "admin-dashboard": "/admin/dashboard",
+      home: "/",
+      "my-complaints": "/my-complaints",
+      profile: "/profile",
+      "new-report": "/new-report",
+      "community-map": "/community-map",
+      "community-reports": "/community-reports",
+      landing: "/landing",
+    };
+
+    const targetPath = modeToPath[newMode];
+    if (targetPath) {
+      navigate(targetPath);
+      return;
+    }
+
+    handleNavigate(newMode);
+  };
+
   // ========= AUTH ROUTES =========
 
   const authRole = roleFromPath(path);
@@ -116,7 +141,7 @@ function App() {
           onNavigate={navigate}
           onGoToSignup={() => navigate("/admin/signup")}
           onForgotPassword={() => navigate("/otp")}
-          onLoginSuccess={() => navigate("/", { replace: true })}
+          onLoginSuccess={() => navigate("/admin/dashboard", { replace: true })}
         />
       );
     }
@@ -192,6 +217,10 @@ function App() {
 
   if (mode === "community-reports") {
     return <CommunityReports onNavigate={handleNavigate} />;
+  }
+
+  if (mode === "admin-dashboard") {
+    return <AdminDashboardPage onNavigate={handleAdminNavigate} />;
   }
 
   return (

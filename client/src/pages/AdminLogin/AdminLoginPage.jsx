@@ -26,6 +26,7 @@ export default function AdminLoginPage({
         title="Login as Admin"
         subtitle="Access the administrative dashboard and moderation controls."
         adminBadge="Administrator Access"
+        loginEndpoint="/admin/login"
       />
       <Illustration />
     </AuthLayout>
