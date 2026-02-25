@@ -65,7 +65,6 @@ export default function NewReportPage({ onNavigate }) {
           const { lat, lng } = e.latlng;
 
           if (marker) map.removeLayer(marker);
-
           marker = window.L.marker([lat, lng]).addTo(map);
 
           setFormData((prev) => ({
@@ -162,8 +161,20 @@ export default function NewReportPage({ onNavigate }) {
       return;
     }
 
-    if (!formData.location.latitude || !formData.location.longitude) {
+    if (
+      formData.location.latitude === null ||
+      formData.location.longitude === null
+    ) {
       showToast("Please select a location on the map", { type: "warning" });
+      return;
+    }
+
+    const userId = user.id || user._id || user.userId;
+
+    if (!userId) {
+      showToast("User authentication error. Please login again.", {
+        type: "error",
+      });
       return;
     }
 
@@ -174,7 +185,7 @@ export default function NewReportPage({ onNavigate }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: user.id,
+          userId,
           title: formData.title,
           description: formData.description,
           photo: formData.photo,

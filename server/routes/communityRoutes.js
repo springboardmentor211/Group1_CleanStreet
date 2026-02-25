@@ -55,7 +55,7 @@ router.post("/api/community/issues/:id/upvote", async (req, res) => {
       return res.status(400).json({ message: "Invalid issue id" });
 
     const voterId = getVoterId(req);
-    const issueObjectId = new mongoose.Types.ObjectId(id);
+    const issueObjectId = mongoose.Types.ObjectId.createFromHexString(id);
 
     const existing = await IssueVote.findOne({
       issueId: issueObjectId,
@@ -100,7 +100,7 @@ router.post("/api/community/issues/:id/downvote", async (req, res) => {
       return res.status(400).json({ message: "Invalid issue id" });
 
     const voterId = getVoterId(req);
-    const issueObjectId = new mongoose.Types.ObjectId(id);
+    const issueObjectId = mongoose.Types.ObjectId.createFromHexString(id);
 
     const existing = await IssueVote.findOne({
       issueId: issueObjectId,
@@ -145,7 +145,7 @@ router.get("/api/community/issues/:id/comments", async (req, res) => {
       return res.status(400).json({ message: "Invalid issue id" });
 
     const comments = await Comment.find({
-      issueId: new mongoose.Types.ObjectId(id),
+      issueId: mongoose.Types.ObjectId.createFromHexString(id),
     }).sort({ createdAt: 1 });
 
     res.json(comments);
@@ -164,7 +164,7 @@ router.post("/api/community/issues/:id/comments", async (req, res) => {
       return res.status(400).json({ message: "Invalid data" });
 
     await Comment.create({
-      issueId: new mongoose.Types.ObjectId(id),
+      issueId: mongoose.Types.ObjectId.createFromHexString(id),
       author,
       content,
     });

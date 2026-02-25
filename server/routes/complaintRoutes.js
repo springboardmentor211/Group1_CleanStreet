@@ -5,36 +5,29 @@ const cloudinary = require("../config/cloudinary");
 
 const router = express.Router();
 
-/* =====================
-   CREATE COMPLAINT
-===================== */
 router.post("/complaints", async (req, res) => {
-  const {
-    userId,
-    title,
-    description,
-    photo,
-    location,
-    category,
-  } = req.body;
+  const { userId, title, description, photo, location, category } = req.body;
 
   try {
-    // Validate userId is a valid ObjectId
     if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ message: "Invalid user ID" });
     }
 
-    // Validate required fields
     if (!title || !description || !photo) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    if (!location || !location.latitude || !location.longitude) {
+    if (
+      !location ||
+      location.latitude === undefined ||
+      location.longitude === undefined
+    ) {
       return res.status(400).json({ message: "Location is required" });
     }
 
     let photoUrl = photo;
-    if (photo && photo.startsWith("data:image")) {
+
+    if (typeof photo === "string" && photo.startsWith("data:image")) {
       const uploadResult = await cloudinary.uploader.upload(photo, {
         folder: "cleanstreet/complaints",
         resource_type: "image",
@@ -43,7 +36,7 @@ router.post("/complaints", async (req, res) => {
     }
 
     const complaint = new Complaint({
-      userId: new mongoose.Types.ObjectId(userId),
+      userId,
       title,
       description,
       photo: photoUrl,
@@ -64,31 +57,26 @@ router.post("/complaints", async (req, res) => {
       complaint,
     });
   } catch (err) {
-    console.error("Complaint creation error:", err);
-    if (err.name === "ValidationError") {
-      return res.status(400).json({ message: err.message });
-    }
-    res.status(500).json({ message: "Server error" });
+    console.error("UPLOAD ERROR FULL:", err);
+    console.error("UPLOAD ERROR MESSAGE:", err.message);
+    console.error("UPLOAD ERROR STACK:", err.stack);
+    res.status(500).json({ message: err.message || "Server error" });
   }
 });
 
-/* =====================
-   GET USER'S COMPLAINTS (by userId param)
-===================== */
 router.get("/complaints/user/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
 
-    // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ message: "Invalid user ID" });
     }
 
-    const complaints = await Complaint.find({ userId: new mongoose.Types.ObjectId(userId) })
+    const complaints = await Complaint.find({ userId })
       .populate("userId", "name email")
       .populate("assignedTo", "name email")
       .sort({ createdAt: -1 })
-      .lean(); // Use lean() for better performance
+      .lean();
 
     res.status(200).json(complaints);
   } catch (err) {
@@ -97,10 +85,6 @@ router.get("/complaints/user/:userId", async (req, res) => {
   }
 });
 
-/* =====================
-   GET MY COMPLAINTS (from query param userId)
-   Endpoint: GET /api/complaints/my?userId=xxx
-===================== */
 router.get("/api/complaints/my", async (req, res) => {
   try {
     const { userId } = req.query;
@@ -109,12 +93,11 @@ router.get("/api/complaints/my", async (req, res) => {
       return res.status(400).json({ message: "User ID is required" });
     }
 
-    // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ message: "Invalid user ID" });
     }
 
-    const complaints = await Complaint.find({ userId: new mongoose.Types.ObjectId(userId) })
+    const complaints = await Complaint.find({ userId })
       .populate("userId", "name email")
       .populate("assignedTo", "name email")
       .sort({ createdAt: -1 })
@@ -127,9 +110,6 @@ router.get("/api/complaints/my", async (req, res) => {
   }
 });
 
-/* =====================
-   GET ALL COMPLAINTS (for admin/volunteer)
-===================== */
 router.get("/complaints", async (req, res) => {
   try {
     const complaints = await Complaint.find()
@@ -145,14 +125,12 @@ router.get("/complaints", async (req, res) => {
   }
 });
 
-/* =====================
-   GET ALL COMPLAINTS FOR COMMUNITY VIEW
-   Endpoint: GET /api/complaints/all
-===================== */
 router.get("/api/complaints/all", async (req, res) => {
   try {
     const complaints = await Complaint.find()
-      .select("title description photo location category status createdAt upvotes downvotes")
+      .select(
+        "title description photo location category status createdAt upvotes downvotes",
+      )
       .populate("userId", "name")
       .sort({ createdAt: -1 })
       .lean();
@@ -164,9 +142,6 @@ router.get("/api/complaints/all", async (req, res) => {
   }
 });
 
-/* =====================
-   GET SINGLE COMPLAINT
-===================== */
 router.get("/complaints/:id", async (req, res) => {
   try {
     const complaint = await Complaint.findById(req.params.id)
@@ -179,13 +154,11 @@ router.get("/complaints/:id", async (req, res) => {
 
     res.status(200).json(complaint);
   } catch (err) {
+    console.error("Error fetching complaint:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-/* =====================
-   UPDATE COMPLAINT STATUS
-===================== */
 router.put("/complaints/:id", async (req, res) => {
   const { status, assignedTo } = req.body;
 
@@ -207,13 +180,11 @@ router.put("/complaints/:id", async (req, res) => {
       complaint,
     });
   } catch (err) {
+    console.error("Error updating complaint:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-/* =====================
-   DELETE COMPLAINT
-===================== */
 router.delete("/complaints/:id", async (req, res) => {
   try {
     const complaint = await Complaint.findByIdAndDelete(req.params.id);
@@ -228,10 +199,6 @@ router.delete("/complaints/:id", async (req, res) => {
   }
 });
 
-/* =====================
-   GET COMPLAINT STATISTICS
-   Endpoint: GET /api/complaints/stats?userId=xxx
-===================== */
 router.get("/api/complaints/stats", async (req, res) => {
   try {
     const { userId } = req.query;
@@ -240,38 +207,35 @@ router.get("/api/complaints/stats", async (req, res) => {
       return res.status(400).json({ message: "User ID is required" });
     }
 
-    // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ message: "Invalid user ID" });
     }
 
-    const userIdObj = new mongoose.Types.ObjectId(userId);
+    const userIdObj = mongoose.Types.ObjectId.createFromHexString(userId);
 
-    // Use aggregation for efficient counting
     const stats = await Complaint.aggregate([
       {
         $facet: {
           myComplaints: [
             { $match: { userId: userIdObj } },
-            { $count: "total" }
+            { $count: "total" },
           ],
           resolved: [
             { $match: { userId: userIdObj, status: "resolved" } },
-            { $count: "total" }
+            { $count: "total" },
           ],
           inProgress: [
             { $match: { userId: userIdObj, status: "in_progress" } },
-            { $count: "total" }
+            { $count: "total" },
           ],
           pending: [
             { $match: { userId: userIdObj, status: "pending" } },
-            { $count: "total" }
-          ]
-        }
-      }
+            { $count: "total" },
+          ],
+        },
+      },
     ]);
 
-    // Extract counts from aggregation result
     const result = {
       myComplaints: stats[0].myComplaints[0]?.total || 0,
       resolved: stats[0].resolved[0]?.total || 0,
