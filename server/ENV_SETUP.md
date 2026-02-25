@@ -11,3 +11,12 @@ ADMIN_MONGO_URI=mongodb+srv://<username>:<password>@<cluster>/cleanstreet_admins
 ADMIN_DB_NAME=cleanstreet_admins
 ```
 
+### Brevo SMTP (for OTP email verification)
+
+```bash
+BREVO_SMTP_HOST=smtp-relay.brevo.com
+BREVO_SMTP_PORT=587
+BREVO_SMTP_USER=<your-brevo-smtp-login>
+BREVO_SMTP_PASS=<your-brevo-smtp-password>
+BREVO_API_KEY=<your-brevo-api-key>
+```

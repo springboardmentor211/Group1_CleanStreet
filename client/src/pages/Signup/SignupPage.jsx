@@ -9,6 +9,7 @@ export default function SignupPage({
   authRole = "user",
   onNavigate,
   onGoToLogin,
+  onGoToOtp,
   title = "Join us to improve your City",
   subtitle = "Create your account and resolve local issues.",
   adminBadge = "",
@@ -56,25 +57,26 @@ export default function SignupPage({
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}${signupEndpoint}`, {
+      // Send OTP to the user's email first
+      const otpRes = await fetch(`${API_BASE}/api/otp/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email,
-          phone,
-          password,
-          role: signupRole,
-        }),
+        body: JSON.stringify({ email }),
       });
 
-      const data = await res.json();
+      const otpData = await otpRes.json();
 
-      if (!res.ok) {
-        showToast(data.message || "Signup failed.", { type: "error" });
+      if (!otpRes.ok) {
+        showToast(otpData.message || "Failed to send OTP.", { type: "error" });
       } else {
-        showToast("Signup successful", { type: "success" });
-        onGoToLogin();
+        showToast("OTP sent to your email!", { type: "success" });
+        // Navigate to OTP verification page with signup data
+        if (onGoToOtp) {
+          onGoToOtp({
+            data: { name, email, phone, password, role: signupRole },
+            endpoint: signupEndpoint,
+          });
+        }
       }
     } catch (err) {
       showToast("Server error. Please try again.", { type: "error" });

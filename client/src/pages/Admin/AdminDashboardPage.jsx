@@ -38,6 +38,10 @@ export default function AdminDashboardPage({ onNavigate }) {
   const [loading, setLoading] = useState(true);
   const [resolvingComplaint, setResolvingComplaint] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all");
+  const [sortBy, setSortBy] = useState("date");
+  const [selectedComplaint, setSelectedComplaint] = useState(null);
+  const [complaintComments, setComplaintComments] = useState([]);
+  const [loadingComments, setLoadingComments] = useState(false);
 
   useEffect(() => {
     let isCancelled = false;
@@ -179,9 +183,36 @@ export default function AdminDashboardPage({ onNavigate }) {
   const getEditableStatus = (status) =>
     EDITABLE_STATUSES.includes(status) ? status : "pending";
 
-  const filteredComplaints = complaints.filter((c) =>
-    filterStatus === "all" ? true : c.status === filterStatus,
-  );
+  const openComplaintPopup = async (complaint) => {
+    setSelectedComplaint(complaint);
+    setComplaintComments([]);
+    setLoadingComments(true);
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/community/issues/${complaint._id}/comments`,
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setComplaintComments(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error("Failed to load comments:", err);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  const closeComplaintPopup = () => {
+    setSelectedComplaint(null);
+    setComplaintComments([]);
+  };
+
+  const filteredComplaints = complaints
+    .filter((c) => (filterStatus === "all" ? true : c.status === filterStatus))
+    .sort((a, b) => {
+      if (sortBy === "upvotes") return (b.upvotes || 0) - (a.upvotes || 0);
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
 
   const totalComplaints = complaints.length;
   const pendingComplaints = complaints.filter(
@@ -401,6 +432,14 @@ export default function AdminDashboardPage({ onNavigate }) {
                     <h2 className="admin-section-title">Manage Complaints</h2>
                     <div className="admin-filter">
                       <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="admin-filter-select"
+                      >
+                        <option value="date">Date (Newest)</option>
+                        <option value="upvotes">Most Upvotes</option>
+                      </select>
+                      <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
                         className="admin-filter-select"
@@ -423,6 +462,8 @@ export default function AdminDashboardPage({ onNavigate }) {
                         <div
                           key={complaint._id}
                           className="admin-complaint-item"
+                          style={{ cursor: "pointer" }}
+                          onClick={() => openComplaintPopup(complaint)}
                         >
                           <div className="admin-complaint-image">
                             <img
@@ -468,12 +509,14 @@ export default function AdminDashboardPage({ onNavigate }) {
                           <div className="admin-complaint-actions">
                             <select
                               value={getEditableStatus(complaint.status)}
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                e.stopPropagation();
                                 updateComplaintStatus(
                                   complaint._id,
                                   e.target.value,
-                                )
-                              }
+                                );
+                              }}
+                              onClick={(e) => e.stopPropagation()}
                               disabled={resolvingComplaint === complaint._id}
                               className="admin-status-select"
                             >
@@ -486,6 +529,141 @@ export default function AdminDashboardPage({ onNavigate }) {
                       ))
                     )}
                   </div>
+
+                  {/* ===== Complaint Detail Popup ===== */}
+                  {selectedComplaint && (
+                    <div
+                      className="admin-popup-overlay"
+                      onClick={closeComplaintPopup}
+                    >
+                      <div
+                        className="admin-popup-content"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          type="button"
+                          className="admin-popup-close"
+                          onClick={closeComplaintPopup}
+                        >
+                          &times;
+                        </button>
+
+                        <div className="admin-popup-image-wrap">
+                          <img
+                            src={selectedComplaint.photo}
+                            alt={selectedComplaint.title}
+                            className="admin-popup-image"
+                            onError={(e) => {
+                              e.target.src =
+                                "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='260'%3E%3Crect fill='%23e5e7eb' width='400' height='260'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='18'%3ENo Image%3C/text%3E%3C/svg%3E";
+                            }}
+                          />
+                        </div>
+
+                        <h3 className="admin-popup-title">
+                          {selectedComplaint.title}
+                        </h3>
+
+                        <p className="admin-popup-description">
+                          {selectedComplaint.description}
+                        </p>
+
+                        <div className="admin-popup-details-grid">
+                          <div className="admin-popup-detail">
+                            <span className="admin-popup-detail-label">Category</span>
+                            <span className="admin-popup-detail-value">
+                              {getCategoryLabel(selectedComplaint.category)}
+                            </span>
+                          </div>
+                          <div className="admin-popup-detail">
+                            <span className="admin-popup-detail-label">Status</span>
+                            <span
+                              className="admin-status-badge"
+                              style={{
+                                backgroundColor: getStatusColor(
+                                  selectedComplaint.status,
+                                ),
+                              }}
+                            >
+                              {getStatusLabel(selectedComplaint.status)}
+                            </span>
+                          </div>
+                          <div className="admin-popup-detail">
+                            <span className="admin-popup-detail-label">Upvotes</span>
+                            <span className="admin-popup-detail-value admin-popup-upvotes">
+                              ▲ {selectedComplaint.upvotes || 0}
+                            </span>
+                          </div>
+                          <div className="admin-popup-detail">
+                            <span className="admin-popup-detail-label">Downvotes</span>
+                            <span className="admin-popup-detail-value admin-popup-downvotes">
+                              ▼ {selectedComplaint.downvotes || 0}
+                            </span>
+                          </div>
+                          <div className="admin-popup-detail">
+                            <span className="admin-popup-detail-label">Reported by</span>
+                            <span className="admin-popup-detail-value">
+                              {selectedComplaint.userId?.name || "Unknown"}
+                            </span>
+                          </div>
+                          <div className="admin-popup-detail">
+                            <span className="admin-popup-detail-label">Date</span>
+                            <span className="admin-popup-detail-value">
+                              {new Date(
+                                selectedComplaint.createdAt,
+                              ).toLocaleDateString()}
+                            </span>
+                          </div>
+                          {selectedComplaint.location?.address && (
+                            <div className="admin-popup-detail admin-popup-detail-full">
+                              <span className="admin-popup-detail-label">Location</span>
+                              <span className="admin-popup-detail-value">
+                                {selectedComplaint.location.address}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="admin-popup-comments-section">
+                          <h4 className="admin-popup-comments-title">
+                            Comments ({complaintComments.length})
+                          </h4>
+                          {loadingComments ? (
+                            <p className="admin-popup-comments-loading">
+                              Loading comments…
+                            </p>
+                          ) : complaintComments.length === 0 ? (
+                            <p className="admin-popup-comments-empty">
+                              No comments yet.
+                            </p>
+                          ) : (
+                            <div className="admin-popup-comments-list">
+                              {complaintComments.map((c) => (
+                                <div
+                                  key={c._id}
+                                  className="admin-popup-comment"
+                                >
+                                  <div className="admin-popup-comment-header">
+                                    <span className="admin-popup-comment-author">
+                                      {c.author}
+                                    </span>
+                                    <span className="admin-popup-comment-date">
+                                      {new Date(
+                                        c.createdAt,
+                                      ).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                  <p className="admin-popup-comment-content">
+                                    {c.content}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

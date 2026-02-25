@@ -4,6 +4,7 @@ import SignupPage from "./pages/Signup/SignupPage";
 import AdminLoginPage from "./pages/AdminLogin/AdminLoginPage";
 import AdminSignupPage from "./pages/AdminSignup/AdminSignupPage";
 import OtpPage from "./pages/Otp/OtpPage";
+import SignupOtpPage from "./pages/SignupOtp/SignupOtpPage";
 import ResetPassword from "./pages/ResetPassword/ResetPassword";
 import HomePage from "./pages/Home/HomePage";
 import DashboardHomePage from "./pages/DashboardHome/DashboardHomePage";
@@ -27,6 +28,7 @@ function modeFromPath(pathname) {
 
   if (p === "/otp") return "otp";
   if (p === "/reset") return "reset";
+  if (p === "/signup/otp" || p === "/admin/signup/otp") return "signup-otp";
   if (p === "/login" || p === "/admin/login") return "login";
   if (p === "/signup" || p === "/admin/signup") return "signup";
   if (p === "/") return "home";
@@ -54,6 +56,8 @@ function App() {
   const [mode, setMode] = useState(() => {
     return modeFromPath(window.location.pathname) ?? "signup";
   });
+
+  const [pendingSignup, setPendingSignup] = useState(null);
 
   const navigate = (to, { replace = false } = {}) => {
     const next = normalizePathname(to);
@@ -180,6 +184,10 @@ function App() {
         <AdminSignupPage
           onNavigate={navigate}
           onGoToLogin={() => navigate("/admin/login")}
+          onGoToOtp={(pending) => {
+            setPendingSignup(pending);
+            navigate("/admin/signup/otp");
+          }}
         />
       );
     }
@@ -189,6 +197,33 @@ function App() {
         authRole={authRole}
         onNavigate={navigate}
         onGoToLogin={() => navigate(loginPath)}
+        onGoToOtp={(pending) => {
+          setPendingSignup(pending);
+          navigate("/signup/otp");
+        }}
+      />
+    );
+  }
+
+  if (mode === "signup-otp" && pendingSignup) {
+    const otpRole = roleFromPath(path);
+    return (
+      <SignupOtpPage
+        signupData={pendingSignup.data}
+        signupEndpoint={pendingSignup.endpoint}
+        authRole={otpRole}
+        onNavigate={navigate}
+        onVerified={() => {
+          setPendingSignup(null);
+          const loginTarget =
+            otpRole === "admin" ? "/admin/login" : "/login";
+          navigate(loginTarget);
+        }}
+        onBack={() => {
+          const signupTarget =
+            otpRole === "admin" ? "/admin/signup" : "/signup";
+          navigate(signupTarget);
+        }}
       />
     );
   }
