@@ -106,6 +106,7 @@ body {
     opacity: 0;
     transform: translateY(-40px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -164,6 +165,7 @@ body {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -174,6 +176,7 @@ body {
     opacity: 0;
     transform: scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -228,11 +231,9 @@ body {
   right: 0;
   width: 100%;
   z-index: 3;
-  background: linear-gradient(
-    -90deg,
-    rgba(223, 235, 218, 0.9),
-    rgba(168, 232, 144, 0.9)
-  );
+  background: linear-gradient(-90deg,
+      rgba(223, 235, 218, 0.9),
+      rgba(168, 232, 144, 0.9));
   border-bottom: 1px solid rgba(34, 197, 94, 0.25);
 }
 
@@ -448,7 +449,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem; /* 👈 Bigger icon */
+  font-size: 1.6rem;
+  /* 👈 Bigger icon */
   line-height: 1;
   color: #6b7280;
   transition:
@@ -636,11 +638,9 @@ body {
 
 .home-shell {
   width: 100vw;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.96),
-    rgba(255, 255, 255, 0.98)
-  );
+  background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.96),
+      rgba(255, 255, 255, 0.98));
   border-radius: 24px;
   box-shadow: 0 22px 60px rgba(15, 23, 42, 0.25);
   padding: 1.75rem 5vw 2.4rem;
@@ -2352,11 +2352,9 @@ body {
 
 /* Profile Header Section */
 .profile-header-section {
-  background: linear-gradient(
-    135deg,
-    rgba(142, 220, 110, 0.2),
-    rgba(168, 232, 144, 0.1)
-  );
+  background: linear-gradient(135deg,
+      rgba(142, 220, 110, 0.2),
+      rgba(168, 232, 144, 0.1));
   border-radius: 24px;
   padding: 3rem 2rem;
   margin-bottom: 2rem;
@@ -2612,6 +2610,7 @@ body {
 
 /* Responsive */
 @media (max-width: 768px) {
+
   .page-content,
   .dashboard-home-content,
   .profile-page-content {
@@ -2904,4 +2903,105 @@ body {
 
 .comment-input-container button:hover {
   background: #16a34a;
+}
+
+/* ==========================
+   COMMUNITY MAP FILTERS
+========================== */
+
+.map-filter-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 20px;
+  margin-bottom: 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.map-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.map-filter-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.map-filter-options {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.map-filter-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.map-filter-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #22c55e;
+  cursor: pointer;
+  margin: 0;
+  border-radius: 4px;
+}
+
+.map-filter-checkbox-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4b5563;
+  white-space: nowrap;
+}
+
+.map-filter-checkbox:hover .map-filter-checkbox-text {
+  color: #111827;
+}
+
+.map-filter-divider {
+  width: 1px;
+  height: 28px;
+  background: #e5e7eb;
+  flex-shrink: 0;
+}
+
+.map-filter-count {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .map-filter-panel {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .map-filter-divider {
+    width: 100%;
+    height: 1px;
+  }
+
+  .map-filter-count {
+    margin-left: 0;
+  }
 }

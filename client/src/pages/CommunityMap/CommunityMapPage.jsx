@@ -1,10 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { API_BASE } from "../../utils/apiBase";
 
 const OSRM_DIRECTIONS_BASE =
   "https://www.openstreetmap.org/directions?engine=osrm_car&route=";
 const DEFAULT_CENTER = [28.6139, 77.209];
 const FIXED_ZOOM = 11;
+
+const STATUS_OPTIONS = [
+  { value: "pending", label: "Pending" },
+  { value: "in_progress", label: "In Progress" },
+  { value: "resolved", label: "Resolved" },
+];
+
+const CATEGORY_OPTIONS = [
+  { value: "garbage", label: "Garbage" },
+  { value: "pothole", label: "Pothole" },
+  { value: "water_leakage", label: "Water Leakage" },
+  { value: "other", label: "Other" },
+];
 
 export default function CommunityMapPage({ onNavigate }) {
   const [issues, setIssues] = useState([]);
@@ -13,6 +26,33 @@ export default function CommunityMapPage({ onNavigate }) {
   const [userCoords, setUserCoords] = useState(null);
   const mapRef = useRef(null);
   const markersRef = useRef([]);
+
+  // Filter state — pending & in_progress checked by default
+  const [selectedStatuses, setSelectedStatuses] = useState(["pending", "in_progress"]);
+  const [selectedCategories, setSelectedCategories] = useState(
+    CATEGORY_OPTIONS.map((c) => c.value),
+  );
+
+  const toggleStatus = (value) => {
+    setSelectedStatuses((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
+    );
+  };
+
+  const toggleCategory = (value) => {
+    setSelectedCategories((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
+    );
+  };
+
+  // Derived filtered list
+  const filteredIssues = useMemo(() => {
+    return issues.filter((issue) => {
+      const statusMatch = selectedStatuses.includes(issue.status || "pending");
+      const categoryMatch = selectedCategories.includes(issue.category || "other");
+      return statusMatch && categoryMatch;
+    });
+  }, [issues, selectedStatuses, selectedCategories]);
 
   const fetchIssues = async () => {
     try {
@@ -69,7 +109,7 @@ export default function CommunityMapPage({ onNavigate }) {
             setUserCoords(coords);
             mapRef.current.setView(coords, FIXED_ZOOM);
           },
-          () => {},
+          () => { },
           { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 },
         );
       }
@@ -89,7 +129,7 @@ export default function CommunityMapPage({ onNavigate }) {
 
     const [fromLat, fromLng] = userCoords || DEFAULT_CENTER;
 
-    issues.forEach((issue) => {
+    filteredIssues.forEach((issue) => {
       const lat = issue?.location?.latitude;
       const lng = issue?.location?.longitude;
       if (typeof lat !== "number" || typeof lng !== "number") return;
@@ -109,7 +149,7 @@ export default function CommunityMapPage({ onNavigate }) {
 
       markersRef.current.push(marker);
     });
-  }, [issues, userCoords]);
+  }, [filteredIssues, userCoords]);
 
   return (
     <div className="page-container">
@@ -187,6 +227,47 @@ export default function CommunityMapPage({ onNavigate }) {
               <p className="page-subtitle">
                 View all issues reported in your community
               </p>
+            </div>
+
+            {/* ===== FILTER PANEL ===== */}
+            <div className="map-filter-panel">
+              <div className="map-filter-group">
+                <span className="map-filter-label">Status</span>
+                <div className="map-filter-options">
+                  {STATUS_OPTIONS.map((opt) => (
+                    <label key={opt.value} className="map-filter-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={selectedStatuses.includes(opt.value)}
+                        onChange={() => toggleStatus(opt.value)}
+                      />
+                      <span className="map-filter-checkbox-text">{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="map-filter-divider" />
+
+              <div className="map-filter-group">
+                <span className="map-filter-label">Category</span>
+                <div className="map-filter-options">
+                  {CATEGORY_OPTIONS.map((opt) => (
+                    <label key={opt.value} className="map-filter-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={selectedCategories.includes(opt.value)}
+                        onChange={() => toggleCategory(opt.value)}
+                      />
+                      <span className="map-filter-checkbox-text">{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="map-filter-count">
+                Showing {filteredIssues.length} of {issues.length} issues
+              </div>
             </div>
 
             {loading ? (
