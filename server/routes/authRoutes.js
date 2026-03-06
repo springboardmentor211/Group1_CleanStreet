@@ -1,6 +1,8 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+const cloudinary = require("../config/cloudinary");
 const User = require("../models/User");
 const { getAdminUserModel } = require("../models/AdminUser");
 
@@ -69,9 +71,16 @@ router.post("/login", async (req, res) => {
     // Login success - return user data (without password)
     const userData = toUserResponse(user);
 
+    const token = jwt.sign(
+      { id: user._id.toString(), email: user.email, role: user.role || "user" },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
+    );
+
     res.status(200).json({
       message: "Login successful",
       user: userData,
+      token,
     });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -142,9 +151,16 @@ router.post("/admin/login", async (req, res) => {
 
     const userData = toUserResponse(user);
 
+    const token = jwt.sign(
+      { id: user._id.toString(), email: user.email, role: userData.role },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
+    );
+
     res.status(200).json({
       message: "Login successful",
       user: userData,
+      token,
     });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -172,7 +188,19 @@ router.put("/user/:id", async (req, res) => {
     // Update user fields
     if (name !== undefined) user.name = name;
     if (phone !== undefined) user.phone = phone;
-    if (avatar !== undefined) user.avatar = avatar;
+
+    // Upload avatar to Cloudinary if it's a base64 image
+    if (avatar !== undefined) {
+      if (avatar && avatar.startsWith("data:image")) {
+        const uploadResult = await cloudinary.uploader.upload(avatar, {
+          folder: "cleanstreet/user_profiles",
+          resource_type: "image",
+        });
+        user.avatar = uploadResult.secure_url;
+      } else {
+        user.avatar = avatar;
+      }
+    }
 
     await user.save();
 

@@ -70,11 +70,11 @@ export default function ProfilePage({ onNavigate }) {
         return;
       }
 
-      // Update localStorage
+      // Update localStorage with Cloudinary URL from backend
       if (data.user) {
-        const updatedUser = { ...data.user, avatar: avatar };
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        setUser(data.user);
+        setAvatar(data.user.avatar || null);
         setEditMode(false);
         showToast("Profile updated successfully!", { type: "success" });
       }
