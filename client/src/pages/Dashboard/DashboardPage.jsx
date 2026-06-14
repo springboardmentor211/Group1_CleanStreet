@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useToast } from "../../context/ToastContext";
+import { API_BASE } from "../../utils/apiBase";
 
 export default function DashboardPage({ onNavigate }) {
   const { showToast } = useToast();
@@ -22,7 +23,7 @@ export default function DashboardPage({ onNavigate }) {
     try {
       setLoading(true);
       const res = await fetch(
-        `http://localhost:5000/api/complaints/my?userId=${userId}`,
+        `${API_BASE}/api/complaints/my?userId=${userId}`,
       );
 
       if (!res.ok) {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useToast } from "../../context/ToastContext";
+import { API_BASE } from "../../utils/apiBase";
 
 export default function NewReportPage({ onNavigate }) {
   const { showToast } = useToast();
@@ -181,7 +182,7 @@ export default function NewReportPage({ onNavigate }) {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/complaints", {
+      const res = await fetch(`${API_BASE}/complaints`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

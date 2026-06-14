@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { API_BASE } from "../../utils/apiBase";
 
 export default function DashboardHomePage({ onNavigate }) {
   const [user, setUser] = useState(null);
@@ -29,7 +30,7 @@ export default function DashboardHomePage({ onNavigate }) {
       setError(null);
 
       const res = await fetch(
-        `http://localhost:5000/api/complaints/stats?userId=${userId}`,
+        `${API_BASE}/api/complaints/stats?userId=${userId}`,
       );
 
       if (!res.ok) {

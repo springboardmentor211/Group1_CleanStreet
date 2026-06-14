@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useToast } from "../../context/ToastContext";
+import { API_BASE } from "../../utils/apiBase";
 
 export default function ProfilePage({ onNavigate }) {
   const { showToast } = useToast();
@@ -52,7 +53,7 @@ export default function ProfilePage({ onNavigate }) {
 
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/user/${user.id}`, {
+      const res = await fetch(`${API_BASE}/user/${user.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
